@@ -38,7 +38,7 @@ export default function NotificationsPage() {
         <Card styles={{ body: { padding: 0 } }}>
           {shown.map((n) => <NotificationItem key={n._id} notification={n} onOpen={open} onRead={(x) => run(() => notificationService.markRead(x._id))} onDelete={setDel} />)}
         </Card>
-        {rows.length > PAGE_SIZE && ( <AppPagination total={rows.length} page={page} onChange={setPage} />)}
+        <AppPagination total={rows.length} page={page} onChange={setPage} />
       </AsyncBoundary>
       <ConfirmModal open={!!del} danger title="Delete this notification?" okText="Delete" onConfirm={remove} onCancel={() => setDel(null)}>
         {del && <><strong>{del.title}</strong><div>This cannot be undone.</div></>}

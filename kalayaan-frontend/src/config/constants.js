@@ -2,16 +2,10 @@
 export const ROLES = { PATIENT: 'patient', DOCTOR: 'doctor', RECEPTIONIST: 'receptionist', ADMIN: 'admin' };
 export const ACCOUNT_STATUS = { ACTIVE: 'active', INACTIVE: 'inactive', SUSPENDED: 'suspended' };
 export const APPOINTMENT_STATUS = {
-  PENDING: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Arrived', IN_CONSULTATION: 'In Consultation',
+  PENDING: 'Pending', CONFIRMED: 'Confirmed', CHECKED_IN: 'Checked In', IN_CONSULTATION: 'In Consultation',
   COMPLETED: 'Completed', CANCELLED: 'Cancelled', NO_SHOW: 'No Show',
 };
 // What people SEE for a status. The stored value stays "Checked In"; it is shown as "Arrived".
-export const ACTIVE_STATUSES = [
-  APPOINTMENT_STATUS.PENDING,
-  APPOINTMENT_STATUS.CONFIRMED,
-  APPOINTMENT_STATUS.CHECKED_IN,
-  APPOINTMENT_STATUS.IN_CONSULTATION,
-];
 export const STATUS_LABEL = { 'Checked In': 'Arrived' };
 export const statusLabel = (s) => STATUS_LABEL[s] || s;
 export const SERVICE_CATEGORIES = ['Consultation', 'Preventive', 'Diagnostic'];

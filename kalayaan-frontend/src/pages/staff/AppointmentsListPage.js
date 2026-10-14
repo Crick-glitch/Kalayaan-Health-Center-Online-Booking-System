@@ -15,7 +15,8 @@ import StatusBadge from '../../components/common/StatusBadge';
 import AppointmentActions from '../../components/appointments/AppointmentActions';
 import { formatLong, formatTimeRange, parseDate, toDateString, todayString } from '../../utils/dateUtils';
 import { apptDoctor, fullName } from '../../utils/formatters';
-import { APPOINTMENT_STATUS, ACTIVE_STATUSES, statusLabel } from '../../config/constants';
+import { ACTIVE_STATUSES } from '../../utils/appointmentRules';
+import { APPOINTMENT_STATUS, statusLabel } from '../../config/constants';
 
 const DOCTOR_TABS = { today: ['Today', (a) => a.date === todayString()], upcoming: ['Upcoming', (a) => a.date > todayString() && ACTIVE_STATUSES.includes(a.status)], history: ['History', (a) => a.date < todayString() || ['Completed', 'Cancelled', 'No Show'].includes(a.status)] };
 
