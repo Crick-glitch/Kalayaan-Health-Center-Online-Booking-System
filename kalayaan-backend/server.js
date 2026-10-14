@@ -5,6 +5,7 @@ if (!process.env.MONGO_URI || !process.env.JWT_SECRET) { console.error('Missing 
 const express = require('express'), cors = require('cors'), mongoose = require('mongoose');
 const jwt = require('jsonwebtoken'), bcrypt = require('bcryptjs'), dayjs = require('dayjs');
 const M = require('./models'), { R, ACTIVE, OCCUPY, statusLabel, mins, hhmm, baseSlots, allowed, when, requireEmailVerification } = require('./rules');
+const loginLimit = require('./loginLimiter');
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN }), express.json());
 
@@ -52,8 +53,11 @@ function checkRegister(b) {
 }
 const sign = (u) => jwt.sign({ id: u._id }, process.env.JWT_SECRET, { expiresIn: '8h' });
 app.post('/api/auth/login', wrap(async (q, r) => {
+  const wait = loginLimit.waitSeconds(q); // 5 failed tries per email and 20 per IP in 15 minutes, then 429
+  if (wait) { r.set('Retry-After', String(wait)); throw new E(429, 'TOO_MANY_ATTEMPTS', `Too many failed logins. Try again in ${Math.ceil(wait / 60)} minute${wait > 60 ? 's' : ''}.`); }
   const u = await M.User.findOne({ email: String(q.body.email || '').toLowerCase() }).select('+passwordHash');
-  if (!u || !(await bcrypt.compare(q.body.password || '', u.passwordHash || ''))) throw new E(401, 'INVALID_CREDENTIALS', 'Invalid email or password.');
+  if (!u || !(await bcrypt.compare(q.body.password || '', u.passwordHash || ''))) { loginLimit.recordFailure(q); throw new E(401, 'INVALID_CREDENTIALS', 'Invalid email or password.'); }
+  loginLimit.clear(q); // the password was right: start counting from zero again
   if (u.isArchived) throw new E(403, 'ACCOUNT_UNAVAILABLE', 'Account unavailable. Contact the health center.');
   if (u.accountStatus !== 'active') throw new E(403, 'ACCOUNT_' + u.accountStatus.toUpperCase(), `Your account is ${u.accountStatus}. Contact the health center.`);
   if (!u.isVerified && requireEmailVerification()) throw new E(403, 'ACCOUNT_UNVERIFIED', 'Verify your email or mobile number before logging in.');

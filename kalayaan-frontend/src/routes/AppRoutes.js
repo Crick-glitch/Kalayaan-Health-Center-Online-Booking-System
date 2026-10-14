@@ -1,7 +1,8 @@
 // AppRoutes.js - route definitions and access boundaries for the application.
 // Portals are wrapped in ProtectedRoute (logged in) and RoleRoute (right role). Login is wrapped in GuestRoute.
+import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes, Link } from 'react-router-dom';
-import { Button, Result } from 'antd';
+import { Button, Result, Spin } from 'antd';
 import PublicLayout from '../layouts/PublicLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import PlaceholderPage from '../components/common/PlaceholderPage';
@@ -9,36 +10,38 @@ import ProtectedRoute from './ProtectedRoute';
 import RoleRoute from './RoleRoute';
 import GuestRoute from './GuestRoute';
 import LoginPage from '../pages/auth/LoginPage';
-import RegisterPage from '../pages/auth/RegisterPage';
-import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
-import VerifyAccountPage from '../pages/auth/VerifyAccountPage';
 import HomePage from '../pages/public/HomePage';
-import AboutPage from '../pages/public/AboutPage';
-import PrivacyPage from '../pages/public/PrivacyPage';
-import ServicesPage from '../pages/public/ServicesPage';
-import ProvidersPage from '../pages/public/ProvidersPage';
-import ProviderDetailsPage from '../pages/public/ProviderDetailsPage';
-import PatientDashboardPage from '../pages/patient/PatientDashboardPage';
-import BookAppointmentPage from '../pages/patient/BookAppointmentPage';
-import MyAppointmentsPage from '../pages/patient/MyAppointmentsPage';
-import AppointmentDetailsPage from '../pages/patient/AppointmentDetailsPage';
-import AppointmentsListPage from '../pages/staff/AppointmentsListPage';
-import TodayDashboardPage from '../pages/staff/TodayDashboardPage';
-import NotificationsPage from '../pages/shared/NotificationsPage';
-import ProfilePage from '../pages/shared/ProfilePage';
-import SettingsPage from '../pages/shared/SettingsPage';
-import PatientsPage from '../pages/staff/PatientsPage';
-import SchedulesPage from '../pages/staff/SchedulesPage';
-import SchedulePage from '../pages/doctor/SchedulePage';
-import DoctorProfilePage from '../pages/doctor/DoctorProfilePage';
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
-import UsersPage from '../pages/admin/UsersPage';
-import UserDetailsPage from '../pages/admin/UserDetailsPage';
-import AdminProvidersPage from '../pages/admin/AdminProvidersPage';
-import AdminServicesPage from '../pages/admin/AdminServicesPage';
-import AdminSchedulesPage from '../pages/admin/AdminSchedulesPage';
-import ArchivePage from '../pages/admin/ArchivePage';
+
+// Pages load on demand: a visitor only downloads the code for the screens they open. The login and home pages stay in the main bundle.
+const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('../pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPasswordPage'));
+const VerifyAccountPage = lazy(() => import('../pages/auth/VerifyAccountPage'));
+const AboutPage = lazy(() => import('../pages/public/AboutPage'));
+const PrivacyPage = lazy(() => import('../pages/public/PrivacyPage'));
+const ServicesPage = lazy(() => import('../pages/public/ServicesPage'));
+const ProvidersPage = lazy(() => import('../pages/public/ProvidersPage'));
+const ProviderDetailsPage = lazy(() => import('../pages/public/ProviderDetailsPage'));
+const PatientDashboardPage = lazy(() => import('../pages/patient/PatientDashboardPage'));
+const BookAppointmentPage = lazy(() => import('../pages/patient/BookAppointmentPage'));
+const MyAppointmentsPage = lazy(() => import('../pages/patient/MyAppointmentsPage'));
+const AppointmentDetailsPage = lazy(() => import('../pages/patient/AppointmentDetailsPage'));
+const AppointmentsListPage = lazy(() => import('../pages/staff/AppointmentsListPage'));
+const TodayDashboardPage = lazy(() => import('../pages/staff/TodayDashboardPage'));
+const NotificationsPage = lazy(() => import('../pages/shared/NotificationsPage'));
+const ProfilePage = lazy(() => import('../pages/shared/ProfilePage'));
+const SettingsPage = lazy(() => import('../pages/shared/SettingsPage'));
+const PatientsPage = lazy(() => import('../pages/staff/PatientsPage'));
+const SchedulesPage = lazy(() => import('../pages/staff/SchedulesPage'));
+const SchedulePage = lazy(() => import('../pages/doctor/SchedulePage'));
+const DoctorProfilePage = lazy(() => import('../pages/doctor/DoctorProfilePage'));
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
+const UsersPage = lazy(() => import('../pages/admin/UsersPage'));
+const UserDetailsPage = lazy(() => import('../pages/admin/UserDetailsPage'));
+const AdminProvidersPage = lazy(() => import('../pages/admin/AdminProvidersPage'));
+const AdminServicesPage = lazy(() => import('../pages/admin/AdminServicesPage'));
+const AdminSchedulesPage = lazy(() => import('../pages/admin/AdminSchedulesPage'));
+const ArchivePage = lazy(() => import('../pages/admin/ArchivePage'));
 
 // One page can serve several roles; only route entries without a component use the placeholder fallback.
 const BUILT = {
@@ -63,6 +66,8 @@ const PORTAL = {
   staff: [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['appointments/create', 'Create appointment'], ['appointments/:id', 'Appointment details'], ['patients', 'Patients'], ['providers', 'Physicians'], ['schedules', 'Schedules'], ['notifications', 'Notifications'], ['profile', 'Profile']],
   admin: [['dashboard', 'Dashboard'], ['employees', 'Employees'], ['employees/:id', 'Employee details'], ['patients', 'Patients'], ['providers', 'Physicians'], ['services', 'Services'], ['appointments', 'Appointments'], ['appointments/:id', 'Appointment details'], ['schedules', 'Schedules'], ['archive', 'Archive'], ['notifications', 'Notifications'], ['settings', 'Settings']],
 };
+const PageLoading = () => <div style={{ display: 'grid', placeItems: 'center', padding: 64 }}><Spin size="large" aria-label="Loading page" /></div>;
+const Page = ({ children }) => <Suspense fallback={<PageLoading />}>{children}</Suspense>; // inside the layout, so the menu stays while a page loads
 const ErrorPage = ({ code, title, sub }) => <Result status={code} title={title} subTitle={sub} extra={<Link to="/"><Button type="primary">Go home</Button></Link>} />;
 
 export default function AppRoutes() {
@@ -70,8 +75,8 @@ export default function AppRoutes() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
-        <Route element={<GuestRoute />}><Route path="login" element={<LoginPage />} /><Route path="register" element={<RegisterPage />} /><Route path="verify-account" element={<VerifyAccountPage />} /></Route>
-        {PUBLIC.map((path) => <Route key={path} path={path} element={BUILT[path]} />)}
+        <Route element={<GuestRoute />}><Route path="login" element={<LoginPage />} /><Route path="register" element={<Page><RegisterPage /></Page>} /><Route path="verify-account" element={<Page><VerifyAccountPage /></Page>} /></Route>
+        {PUBLIC.map((path) => <Route key={path} path={path} element={<Page>{BUILT[path]}</Page>} />)}
         <Route path="403" element={<ErrorPage code="403" title="Access denied" sub="You do not have permission to view this page." />} />
         <Route path="*" element={<ErrorPage code="404" title="Page not found" sub="The page you requested does not exist." />} />
       </Route>
@@ -80,7 +85,7 @@ export default function AppRoutes() {
           <Route path={prefix} element={<RoleRoute allowedRoles={[ROLE_OF[prefix]]} />}>
             <Route element={<DashboardLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
-              {pages.map(([path, title]) => <Route key={path} path={path} element={BUILT[`${prefix}/${path}`] || <PlaceholderPage title={title} />} />)}
+              {pages.map(([path, title]) => <Route key={path} path={path} element={<Page>{BUILT[`${prefix}/${path}`] || <PlaceholderPage title={title} />}</Page>} />)}
             </Route>
           </Route>
         </Route>
