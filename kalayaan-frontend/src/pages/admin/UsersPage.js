@@ -26,7 +26,7 @@ const ROLES = ['admin', 'receptionist', 'doctor'].map((r) => ({ value: r, label:
 const STATUSES = [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }, { value: 'suspended', label: 'Suspended' }];
 
 export default function UsersPage() {
-  const { user: me } = useAuth(), list = useFetch(() => userService.list({ limit: 500 }), []);
+  const { user: me } = useAuth(), list = useFetch(async () => ({ users: (await Promise.all(['admin', 'receptionist', 'doctor'].map((r) => userService.list({ role: r, limit: 500 })))).flatMap((d) => d.users) }), []); // employees only, so a long patient list never pushes them out({ limit: 500 }), []);
   const [q, setQ] = useState(''), [role, setRole] = useState(), [status, setStatus] = useState();
   const [form, setForm] = useState(null), [statusFor, setStatusFor] = useState(null), [archiveFor, setArchiveFor] = useState(null);
   const term = q.trim().toLowerCase();

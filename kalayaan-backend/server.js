@@ -1,7 +1,7 @@
 // server.js - Express API: auth, slots, booking and the appointment lifecycle.
 require('dotenv').config();
 process.env.TZ = process.env.TZ || 'Asia/Manila'; // "today", lead time and cutoffs must follow the clinic's clock (UTC+8)
-if (!process.env.MONGO_URI || !process.env.JWT_SECRET) { console.error('Missing MONGO_URI or JWT_SECRET. Copy .env.example to .env and fill them in.'); process.exit(1); }
+if (!process.env.MONGO_URI || !process.env.JWT_SECRET) { console.error('Missing MONGO_URI or JWT_SECRET. Follow the instructions in SETUP.md.'); process.exit(1); }
 const express = require('express'), cors = require('cors'), mongoose = require('mongoose');
 const jwt = require('jsonwebtoken'), bcrypt = require('bcryptjs'), dayjs = require('dayjs');
 const M = require('./models'), { R, ACTIVE, OCCUPY, statusLabel, mins, hhmm, baseSlots, allowed, when, requireEmailVerification } = require('./rules');
