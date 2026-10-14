@@ -8,7 +8,7 @@ import useFetch from '../../hooks/useFetch';
 import AsyncBoundary from '../../components/common/AsyncBoundary';
 import ServiceCard from '../../components/common/ServiceCard';
 
-const STEPS = [['Book', 'Choose a service, doctor and time.'], ['Staff confirms', 'The health center reviews your request.'], ['Check in', 'Arrive and check in on the day.'], ['Consultation', 'See your doctor.'], ['Completed', 'The doctor records your visit.']];
+const STEPS = [['Book', 'Choose a service, doctor and time.'], ['Staff confirms', 'The health center reviews your request.'], ['Arrived', 'Arrive and the front desk marks you as arrived.'], ['Consultation', 'See your doctor.'], ['Completed', 'The doctor records your visit.']];
 
 export default function HomePage() {
   const { data, loading, error, reload } = useFetch(() => serviceService.list(), []);

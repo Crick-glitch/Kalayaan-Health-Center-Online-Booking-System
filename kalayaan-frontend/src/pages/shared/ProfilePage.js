@@ -10,10 +10,11 @@ import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { EmergencyFields, PersonalFields, fieldErrorsToForm, profileInitial, profileToApi } from '../../components/forms/ProfileFields';
 import handleApiError from '../../utils/handleApiError';
+import { live } from '../../utils/validators';
 import { formatLong, toDateString } from '../../utils/dateUtils';
 import { fullName } from '../../utils/formatters';
 
-const ROLE_LABEL = { patient: 'Patient', receptionist: 'Receptionist', doctor: 'Doctor', admin: 'Administrator' };
+const ROLE_LABEL = { patient: 'Patient', receptionist: 'Receptionist', doctor: 'Physician', admin: 'Administrator' };
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth(), [form] = Form.useForm(), [editing, setEditing] = useState(false), [pending, setPending] = useState(null);
@@ -33,7 +34,7 @@ export default function ProfilePage() {
   return (
     <>
       <PageHeader title="Profile" description="Your personal details. Your email cannot be changed here." actions={!editing && <Button type="primary" onClick={start}>Edit profile</Button>} />
-      <Form form={form} layout="vertical" initialValues={profileInitial(user)} onFinish={setPending} scrollToFirstError>
+      <Form form={form} layout="vertical" {...live} initialValues={profileInitial(user)} onFinish={setPending} scrollToFirstError>
         <Card title="Personal information" style={{ marginBottom: 16 }}>
           {!editing ? <Descriptions column={{ xs: 1, sm: 2 }} items={[
             { label: 'Name', children: fullName(user) }, { label: 'Date of birth', children: formatLong(user.dateOfBirth) }, { label: 'Sex', children: user.sex || '—' },

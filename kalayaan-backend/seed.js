@@ -148,7 +148,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     notes.push(N({ _id: a.patientId }, a.status === 'Pending' ? 'appointment_submitted' : 'status_confirmed', a.status === 'Pending' ? 'Appointment request submitted.' : 'Your appointment has been confirmed.', `Reference ${a.referenceNo}.`, a));
     for (const s of [joy, raf]) notes.push(N(s, a.reschedulePending?.date ? 'reschedule_request' : 'new_request', a.reschedulePending?.date ? 'Reschedule requested' : 'New appointment request', `Reference ${a.referenceNo}.`, a, !!(a.status === 'Confirmed' && !a.reschedulePending?.date)));
   });
-  const chk = A.find((a) => a.status === 'Checked In'); notes.push(N(docs[P.findIndex((p) => p._id.equals(chk.providerId))], 'checked_in', 'Patient checked in', `Reference ${chk.referenceNo}.`, chk));
+  const chk = A.find((a) => a.status === 'Checked In'); notes.push(N(docs[P.findIndex((p) => p._id.equals(chk.providerId))], 'checked_in', 'Patient arrived', `Reference ${chk.referenceNo}.`, chk));
   await M.Notification.insertMany(notes);
   await M.User.updateMany({ isArchived: true }, { archivedBy: admin._id });
   await M.Appointment.updateMany({ isArchived: true }, { archivedBy: admin._id });

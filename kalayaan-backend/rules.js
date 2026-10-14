@@ -3,6 +3,8 @@ const dayjs = require('dayjs');
 const R = { WINDOW_DAYS: 30, MIN_LEAD: 60, CUTOFF_H: 24, MAX_ACTIVE: 3, GRACE: 15 };
 const ACTIVE = ['Pending', 'Confirmed', 'Checked In', 'In Consultation'];
 const OCCUPY = [...ACTIVE, 'Completed']; // every status except Cancelled and No Show holds a slot
+// What people SEE for a status. The stored value stays "Checked In"; it is shown as "Arrived".
+const statusLabel = (s) => ({ 'Checked In': 'Arrived' }[s] || s);
 const mins = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 const hhmm = (m) => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
 
@@ -29,4 +31,4 @@ const when = (date, t) => `${dayjs(date).format('MMMM D, YYYY')} at ${dayjs('200
 // REQUIRE_EMAIL_VERIFICATION=false lets new patients log in right after registering (password recovery still uses an emailed code).
 // When the setting is missing it stays true.
 const requireEmailVerification = () => String(process.env.REQUIRE_EMAIL_VERIFICATION ?? 'true').trim().toLowerCase() !== 'false';
-module.exports = { R, ACTIVE, OCCUPY, mins, hhmm, baseSlots, allowed, when, requireEmailVerification };
+module.exports = { R, ACTIVE, OCCUPY, statusLabel, mins, hhmm, baseSlots, allowed, when, requireEmailVerification };

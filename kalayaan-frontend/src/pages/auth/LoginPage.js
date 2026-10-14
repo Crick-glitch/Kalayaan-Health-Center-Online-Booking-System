@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import clinic from '../../config/clinic';
 import DEMO_ACCOUNTS, { DEMO_PASSWORD } from '../../config/demoAccounts';
 import { ROLE_PREFIX, roleHome } from '../../config/constants';
+import { live } from '../../utils/validators';
 
 export default function LoginPage() {
   const { login } = useAuth(), navigate = useNavigate(), loc = useLocation(), [form] = Form.useForm();
@@ -25,7 +26,7 @@ export default function LoginPage() {
         <Typography.Paragraph type="secondary">Log in to manage your appointments at {clinic.name}.</Typography.Paragraph>
         {loc.state && loc.state.expired && <Alert type="warning" showIcon message="Your session has expired. Please log in again." style={{ marginBottom: 16 }} />}
         {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
-        <Form form={form} layout="vertical" onFinish={submit} onValuesChange={() => setError('')} initialValues={{ remember: false }}>
+        <Form form={form} layout="vertical" {...live} onFinish={submit} onValuesChange={() => setError('')} initialValues={{ remember: false }}>
           <Form.Item label="Email" name="email" rules={[{ required: true, message: 'Enter your email.' }, { type: 'email', message: 'Enter a valid email address.' }]}><Input autoComplete="username" /></Form.Item>
           <Form.Item label="Password" name="password" rules={[{ required: true, message: 'Enter your password.' }]}><Input.Password autoComplete="current-password" /></Form.Item>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>

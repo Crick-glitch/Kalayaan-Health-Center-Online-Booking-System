@@ -10,6 +10,7 @@ import patientService from '../../services/patientService';
 import useFetch from '../../hooks/useFetch';
 import PageHeader from '../../components/common/PageHeader';
 import AsyncBoundary from '../../components/common/AsyncBoundary';
+import { tablePager } from '../../components/common/AppPagination';
 import PatientFormDrawer from '../../components/patients/PatientFormDrawer';
 import PatientHistoryDrawer from '../../components/patients/PatientHistoryDrawer';
 import ArchiveFlow from '../../components/common/ArchiveFlow';
@@ -39,11 +40,11 @@ export default function PatientsPage({ variant }) {
       <PageHeader title="Patients" description={doctor ? 'Patients who have booked with you.' : admin ? 'Patient records. Archive a patient who no longer uses the health center.' : 'Search, add and update patient records.'} actions={edits && <Button type="primary" onClick={() => setForm({ patient: null })}>Add patient</Button>} />
       <Input allowClear prefix={<SearchOutlined />} placeholder="Search by name, email or phone" aria-label="Search patients" value={query} onChange={(e) => setQuery(e.target.value)} style={{ maxWidth: 280, marginBottom: 16 }} />
       <AsyncBoundary loading={list.loading} error={list.error} onRetry={list.reload} loadingText="Loading patients..." empty={!rows.length} emptyText={doctor && !term ? 'No patients yet.' : 'No patients found.'} emptyHint={doctor ? 'Patients appear here once they have an appointment with you.' : 'Try a different search, or add a new patient.'}>
-        <Table rowKey="_id" columns={columns} dataSource={rows} scroll={{ x: 'max-content' }} pagination={{ current: page, pageSize: PAGE_SIZE, total: list.data ? list.data.total : 0, showSizeChanger: false, hideOnSinglePage: true, onChange: setPage }} />
+        <Table rowKey="_id" columns={columns} dataSource={rows} scroll={{ x: 'max-content' }} pagination={tablePager(list.data ? list.data.total : 0, { current: page, total: list.data ? list.data.total : 0, onChange: setPage })} />
       </AsyncBoundary>
       {edits && <PatientFormDrawer open={!!form} patient={form && form.patient} onClose={() => setForm(null)} onSaved={() => { setForm(null); list.reload(); }} />}
       <PatientHistoryDrawer open={!!history} patient={history} onClose={() => setHistory(null)} basePath={doctor ? '/doctor' : admin ? '/admin' : '/staff'} />
-      {admin && <ArchiveFlow open={!!archiveFor} kind="user" name={archiveFor ? fullName(archiveFor) : ''} onCount={() => appointmentService.list({ patientId: archiveFor._id })} onArchive={(reason) => userService.archive(archiveFor._id, reason)}
+      {admin && <ArchiveFlow open={!!archiveFor} kind="patient" name={archiveFor ? fullName(archiveFor) : ''} onCount={() => appointmentService.list({ patientId: archiveFor._id })} onArchive={(reason) => userService.archive(archiveFor._id, reason)}
         link={archiveFor && `/admin/appointments?patientId=${archiveFor._id}`} onClose={() => setArchiveFor(null)} onDone={() => { setArchiveFor(null); list.reload(); }} />}
     </>
   );

@@ -7,6 +7,7 @@ import useFetch from '../../hooks/useFetch';
 import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/common/PageHeader';
 import AsyncBoundary from '../../components/common/AsyncBoundary';
+import { tablePager } from '../../components/common/AppPagination';
 import StatusBadge from '../../components/common/StatusBadge';
 import AppointmentActions from '../../components/appointments/AppointmentActions';
 import { ACTIVE_STATUSES } from '../../utils/appointmentRules';
@@ -20,13 +21,13 @@ export default function TodayDashboardPage({ variant }) {
   const all = data || [], todays = all.filter((a) => a.date === today).sort((x, y) => (x.startTime < y.startTime ? -1 : 1));
   const n = (s) => todays.filter((a) => a.status === s).length;
   const stats = doctor
-    ? [['Today', todays.length], ['Upcoming', all.filter((a) => a.date > today && ACTIVE_STATUSES.includes(a.status)).length], ['Checked in', n('Checked In')], ['Completed today', n('Completed')]]
-    : [['Today', todays.length], ['Pending', n('Pending')], ['Confirmed', n('Confirmed')], ['Checked in', n('Checked In')], ['Completed', n('Completed')], ['Cancelled', n('Cancelled')]];
+    ? [['Today', todays.length], ['Upcoming', all.filter((a) => a.date > today && ACTIVE_STATUSES.includes(a.status)).length], ['Arrived', n('Checked In')], ['Completed today', n('Completed')]]
+    : [['Today', todays.length], ['Pending', n('Pending')], ['Confirmed', n('Confirmed')], ['Arrived', n('Checked In')], ['Completed', n('Completed')], ['Cancelled', n('Cancelled')]];
   const current = todays.find((a) => a.status === 'In Consultation'), waiting = n('Checked In');
   const open = (a) => navigate(`/${doctor ? 'doctor' : 'staff'}/appointments/${a._id}`);
   const columns = [
     { title: 'Time', render: (_, a) => formatTime(a.startTime) }, { title: 'Patient', render: (_, a) => fullName(a.patient) },
-    ...(doctor ? [] : [{ title: 'Provider', render: (_, a) => apptDoctor(a) }]), { title: 'Service', render: (_, a) => a.service && a.service.name },
+    ...(doctor ? [] : [{ title: 'Physician', render: (_, a) => apptDoctor(a) }]), { title: 'Service', render: (_, a) => a.service && a.service.name },
     { title: 'Status', render: (_, a) => <StatusBadge status={a.status} /> },
     { title: 'Actions', align: 'right', render: (_, a) => <Space size={4} wrap style={{ justifyContent: 'flex-end' }}><Button type="link" size="small" onClick={() => open(a)}>View</Button><AppointmentActions compact appointment={a} onDone={reload} onOpen={open} /></Space> },
   ];
@@ -40,7 +41,7 @@ export default function TodayDashboardPage({ variant }) {
         {doctor && <Card title="Current consultation" style={{ marginBottom: 16 }}>{current ? <><Typography.Text strong>{fullName(current.patient)}</Typography.Text> · {current.service && current.service.name}<div style={{ marginTop: 8 }}><Button type="primary" onClick={() => open(current)}>Continue consultation</Button></div></> : <Typography.Text type="secondary">No consultation in progress.</Typography.Text>}</Card>}
         <Typography.Title level={5} style={{ color: '#0B2545' }}>{doctor ? "Today's schedule" : "Today's queue"}</Typography.Title>
         <AsyncBoundary empty={!todays.length} emptyText="No appointments today." emptyHint="New bookings for today will appear here.">
-          <Table rowKey="_id" columns={columns} dataSource={todays} scroll={{ x: 'max-content' }} pagination={false} />
+          <Table rowKey="_id" columns={columns} dataSource={todays} scroll={{ x: 'max-content' }} pagination={tablePager(todays.length)} />
         </AsyncBoundary>
       </AsyncBoundary>
     </>

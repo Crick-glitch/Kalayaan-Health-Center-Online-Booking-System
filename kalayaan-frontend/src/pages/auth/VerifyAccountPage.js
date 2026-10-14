@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, Card, Form, Input, Result, Typography, message } from 'antd';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import authService from '../../services/authService';
+import { live } from '../../utils/validators';
 
 export default function VerifyAccountPage() {
   const [params] = useSearchParams(), location = useLocation(), navigate = useNavigate();
@@ -25,8 +26,8 @@ export default function VerifyAccountPage() {
       <Typography.Paragraph type="secondary">Enter the six-digit code sent to {identifier}.</Typography.Paragraph>
       {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
       {developmentCode && <Alert type="warning" showIcon message="Local development code" description={<Typography.Text code>{developmentCode}</Typography.Text>} style={{ marginBottom: 16 }} />}
-      <Form layout="vertical" onFinish={verify}>
-        <Form.Item label="Verification code" name="code" rules={[{ required: true }, { pattern: /^\d{6}$/, message: 'Enter the six-digit code.' }]}><Input inputMode="numeric" maxLength={6} autoComplete="one-time-code" /></Form.Item>
+      <Form layout="vertical" {...live} onFinish={verify}>
+        <Form.Item label="Verification code" name="code" rules={[{ required: true, message: 'Enter the six-digit code.' }, { pattern: /^\d{6}$/, message: 'Enter the six-digit code.' }]}><Input inputMode="numeric" maxLength={6} autoComplete="one-time-code" /></Form.Item>
         <Button type="primary" htmlType="submit" block loading={busy}>Verify account</Button>
       </Form>
       <Button type="link" block disabled={busy} onClick={resend} style={{ marginTop: 8 }}>Send a new code</Button>

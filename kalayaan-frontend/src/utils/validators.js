@@ -19,3 +19,16 @@ export const rules = {
   differentFrom: (field, message) => [({ getFieldValue }) => ({ validator: (_, v) => (!v || getFieldValue(field) !== v ? Promise.resolve() : Promise.reject(new Error(message))) })],
   reason: (min, max) => [{ required: true, message: 'Enter a reason.' }, { min, max, message: `Use ${min} to ${max} characters.` }],
 };
+
+
+// Realtime validation: spread on every <Form {...live}>. Each field is checked while typing and again when the person leaves it.
+export const live = { validateTrigger: ['onChange', 'onBlur'], validateFirst: true };
+// The password rules, one by one, for the live checklist under the password field.
+export const PASSWORD_CHECKS = [['At least 8 characters', (v) => v.length >= 8], ['An uppercase letter', (v) => /[A-Z]/.test(v)], ['A lowercase letter', (v) => /[a-z]/.test(v)], ['A number', (v) => /\d/.test(v)]];
+// Realtime message for a free-text field (reason, summary): '' while it is fine or still empty-and-untouched.
+export const textProblem = (value, min, max, touched = true) => {
+  const n = (value || '').trim().length;
+  if (!touched) return '';
+  if (n < min) return n === 0 ? 'This field is required.' : `Enter at least ${min} characters (${n}/${min}).`;
+  return (value || '').length > max ? `Use up to ${max} characters.` : '';
+};

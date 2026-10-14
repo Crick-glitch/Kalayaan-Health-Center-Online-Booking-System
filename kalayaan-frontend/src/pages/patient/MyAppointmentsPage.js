@@ -8,6 +8,7 @@ import useFetch from '../../hooks/useFetch';
 import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/common/PageHeader';
 import AsyncBoundary from '../../components/common/AsyncBoundary';
+import { tablePager } from '../../components/common/AppPagination';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import RescheduleModal from '../../components/appointments/RescheduleModal';
@@ -30,7 +31,7 @@ export default function MyAppointmentsPage() {
     setCancelFor(null); reload();
   };
   const columns = [
-    { title: 'Reference', dataIndex: 'referenceNo' }, { title: 'Provider', render: (_, a) => apptDoctor(a) }, { title: 'Service', render: (_, a) => a.service && a.service.name },
+    { title: 'Reference', dataIndex: 'referenceNo' }, { title: 'Physician', render: (_, a) => apptDoctor(a) }, { title: 'Service', render: (_, a) => a.service && a.service.name },
     { title: 'Date and time', render: (_, a) => <><div>{formatLong(a.date)}</div><Typography.Text type="secondary">{formatTimeRange(a.startTime, a.endTime)}</Typography.Text></> },
     { title: 'Status', render: (_, a) => <Space size={4} wrap><StatusBadge status={a.status} />{a.reschedulePending && a.reschedulePending.date && <Tag color="warning" style={{ margin: 0 }}>Reschedule requested</Tag>}</Space> },
     { title: 'Actions', align: 'right', render: (_, a) => <Space><Button type="link" onClick={() => navigate(`/patient/appointments/${a._id}`)}>View</Button>
@@ -41,11 +42,11 @@ export default function MyAppointmentsPage() {
     <>
       <PageHeader title="My Appointments" description="Track and manage your bookings." actions={<><Link to="/patient/services"><Button>View services</Button></Link><Link to="/patient/book-appointment"><Button type="primary" icon={<CalendarOutlined />}>Book Appointment</Button></Link></>} />
       <Tabs activeKey={tab} onChange={setTab} items={TABS.map(([k, l]) => ({ key: k, label: `${l} (${all.filter((a) => inTab(a, k)).length})` }))} />
-      <Input allowClear prefix={<SearchOutlined />} placeholder="Search by reference, service or doctor" aria-label="Search appointments" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 320, marginBottom: 16 }} />
+      <Input allowClear prefix={<SearchOutlined />} placeholder="Search by reference, service or physician" aria-label="Search appointments" value={q} onChange={(e) => setQ(e.target.value)} style={{ maxWidth: 320, marginBottom: 16 }} />
       <AsyncBoundary loading={loading} error={error} onRetry={reload} loadingText="Loading appointments..." empty={!rows.length}
         emptyText={q ? 'No appointments match your search.' : `No ${tab === 'all' ? '' : TABS.find((t) => t[0] === tab)[1].toLowerCase() + ' '}appointments.`} emptyHint={tab === 'upcoming' ? 'Book an appointment to see it here.' : undefined}
         emptyAction={tab === 'upcoming' && !q ? <Link to="/patient/book-appointment"><Button type="primary">Book Appointment</Button></Link> : undefined}>
-        <Table rowKey="_id" columns={columns} dataSource={rows} scroll={{ x: 'max-content' }} pagination={{ pageSize: 10, showSizeChanger: false, hideOnSinglePage: true }} />
+        <Table rowKey="_id" columns={columns} dataSource={rows} scroll={{ x: 'max-content' }} pagination={tablePager(rows.length)} />
       </AsyncBoundary>
       <RescheduleModal appointment={reschedFor} open={!!reschedFor} onClose={() => setReschedFor(null)} onDone={() => { setReschedFor(null); reload(); }} />
       <ConfirmModal open={!!cancelFor} title="Cancel this appointment?" okText="Cancel appointment" danger requireReason onConfirm={doCancel} onCancel={() => setCancelFor(null)}>

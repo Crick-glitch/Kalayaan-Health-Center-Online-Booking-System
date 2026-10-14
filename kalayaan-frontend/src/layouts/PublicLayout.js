@@ -6,7 +6,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import clinic from '../config/clinic';
 import DemoBanner from '../components/common/DemoBanner';
 
-const LINKS = [['/', 'Home'], ['/about', 'About'], ['/services', 'Services'], ['/providers', 'Providers']];
+const LINKS = [['/', 'Home'], ['/about', 'About'], ['/services', 'Services'], ['/providers', 'Physicians']];
 
 export default function PublicLayout() {
   const navigate = useNavigate(), { pathname } = useLocation(), [open, setOpen] = useState(false);

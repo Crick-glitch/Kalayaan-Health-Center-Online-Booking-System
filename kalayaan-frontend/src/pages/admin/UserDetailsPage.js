@@ -7,6 +7,7 @@ import appointmentService from '../../services/appointmentService';
 import providerService from '../../services/providerService';
 import useFetch from '../../hooks/useFetch';
 import AsyncBoundary from '../../components/common/AsyncBoundary';
+import { tablePager } from '../../components/common/AppPagination';
 import StatusBadge from '../../components/common/StatusBadge';
 import { formatLong, formatTimeRange, toDateString } from '../../utils/dateUtils';
 import { apptDoctor, fullName, roleLabel } from '../../utils/formatters';
@@ -22,13 +23,13 @@ export default function UserDetailsPage() {
   const u = data && data.u, e = (u && u.emergencyContact) || {};
   const columns = [
     { title: 'Reference', render: (_, a) => <Link to={`/admin/appointments/${a._id}`}>{a.referenceNo}</Link> }, { title: 'Service', render: (_, a) => a.service && a.service.name },
-    { title: u && u.role === 'doctor' ? 'Patient' : 'Doctor', render: (_, a) => (u && u.role === 'doctor' ? fullName(a.patient) : apptDoctor(a)) },
+    { title: u && u.role === 'doctor' ? 'Patient' : 'Physician', render: (_, a) => (u && u.role === 'doctor' ? fullName(a.patient) : apptDoctor(a)) },
     { title: 'Date and time', render: (_, a) => `${formatLong(a.date)} · ${formatTimeRange(a.startTime, a.endTime)}` }, { title: 'Status', render: (_, a) => <StatusBadge status={a.status} /> },
   ];
   return (
-    <AsyncBoundary loading={loading} error={error} onRetry={reload} loadingText="Loading user..." empty={!u} emptyText="User not found.">
+    <AsyncBoundary loading={loading} error={error} onRetry={reload} loadingText="Loading employee..." empty={!u} emptyText="Employee not found.">
       {u && <>
-        <Breadcrumb style={{ marginBottom: 12 }} items={[{ title: <Link to="/admin/users">Users</Link> }, { title: fullName(u) }]} />
+        <Breadcrumb style={{ marginBottom: 12 }} items={[{ title: <Link to="/admin/employees">Employees</Link> }, { title: fullName(u) }]} />
         <Space wrap align="center" style={{ marginBottom: 16 }}>
           <Typography.Title level={2} style={{ margin: 0, color: '#0B2545' }}>{fullName(u)}</Typography.Title>
           <Tag color="blue">{roleLabel(u.role)}</Tag><StatusBadge type="account" status={u.accountStatus} />{u.isArchived && <Tag>Archived</Tag>}
@@ -39,7 +40,7 @@ export default function UserDetailsPage() {
             { label: 'Address', span: 2, children: u.address || '—' }, ...(u.role === 'patient' ? [{ label: 'Emergency contact', span: 2, children: e.name ? `${e.name} (${e.relationship}) · ${e.contactNumber}` : '—' }] : []),
             { label: 'Created', children: formatLong(toDateString(u.createdAt)) }, { label: 'Last login', children: u.lastLoginAt ? formatLong(toDateString(u.lastLoginAt)) : 'Never' }]} /> },
           { key: 'appointments', label: `Appointments (${data.appts.length})`, children: ['patient', 'doctor'].includes(u.role)
-            ? <Table rowKey="_id" size="small" columns={columns} dataSource={[...data.appts].sort((a, b) => (`${a.date} ${a.startTime}` < `${b.date} ${b.startTime}` ? 1 : -1))} scroll={{ x: 'max-content' }} pagination={{ pageSize: 10, hideOnSinglePage: true }} locale={{ emptyText: 'No appointments yet.' }} />
+            ? <Table rowKey="_id" size="small" columns={columns} dataSource={[...data.appts].sort((a, b) => (`${a.date} ${a.startTime}` < `${b.date} ${b.startTime}` ? 1 : -1))} scroll={{ x: 'max-content' }} pagination={tablePager(data.appts.length)} locale={{ emptyText: 'No appointments yet.' }} />
             : <Typography.Text type="secondary">This role has no appointments.</Typography.Text> },
         ]} />
       </>}

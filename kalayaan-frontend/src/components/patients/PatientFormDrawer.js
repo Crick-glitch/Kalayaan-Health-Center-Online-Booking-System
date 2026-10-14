@@ -5,6 +5,7 @@ import { Alert, Button, Divider, Drawer, Form, Grid, Space, Typography, message 
 import patientService from '../../services/patientService';
 import { EmergencyFields, PersonalFields, fieldErrorsToForm, profileInitial, profileToApi } from '../forms/ProfileFields';
 import handleApiError from '../../utils/handleApiError';
+import { live } from '../../utils/validators';
 
 export default function PatientFormDrawer({ open, patient, onClose, onSaved }) {
   const [form] = Form.useForm(), [busy, setBusy] = useState(false), wide = !!Grid.useBreakpoint().sm, edit = !!patient;
@@ -21,7 +22,7 @@ export default function PatientFormDrawer({ open, patient, onClose, onSaved }) {
   return (
     <Drawer open={open} destroyOnClose maskClosable={false} width={wide ? 480 : '100%'} title={edit ? 'Edit patient' : 'Add patient'} onClose={busy ? undefined : onClose}
       footer={<Space style={{ width: '100%', justifyContent: 'flex-end' }}><Button onClick={onClose} disabled={busy}>Cancel</Button><Button type="primary" loading={busy} onClick={() => form.submit()}>{edit ? 'Save changes' : 'Add patient'}</Button></Space>}>
-      <Form form={form} layout="vertical" initialValues={edit ? profileInitial(patient) : { emergencyContact: {} }} onFinish={submit} scrollToFirstError>
+      <Form form={form} layout="vertical" {...live} initialValues={edit ? profileInitial(patient) : { emergencyContact: {} }} onFinish={submit} scrollToFirstError>
         {!edit && <Alert type="info" showIcon style={{ marginBottom: 16 }} message="No password is set. The patient chooses one with “Forgot password” on the login page." />}
         <Divider orientation="left" style={{ marginTop: 0 }}><Typography.Text strong>Personal information</Typography.Text></Divider>
         <PersonalFields columns={1} email={edit ? 'view' : 'create'} emailValue={patient && patient.email} />

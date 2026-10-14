@@ -12,7 +12,7 @@ export default function SchedulePage() {
   return (
     <>
       <PageHeader title="Schedule" description="Choose the days and hours patients can book with you." />
-      <AsyncBoundary loading={providers.loading} error={providers.error} onRetry={providers.reload} loadingText="Loading your schedule..." empty={!mine} emptyText="Your provider profile was not found." emptyHint="Please contact the administrator.">
+      <AsyncBoundary loading={providers.loading} error={providers.error} onRetry={providers.reload} loadingText="Loading your schedule..." empty={!mine} emptyText="Your physician profile was not found." emptyHint="Please contact the administrator.">
         {mine && <ScheduleEditor providerId={mine._id} />}
       </AsyncBoundary>
     </>

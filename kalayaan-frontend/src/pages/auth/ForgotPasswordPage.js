@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert, Button, Card, Form, Input, Typography, message } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
-import { rules } from '../../utils/validators';
+import { live, rules } from '../../utils/validators';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate(), [form] = Form.useForm(), [busy, setBusy] = useState(false), [error, setError] = useState('');
@@ -21,8 +21,8 @@ export default function ForgotPasswordPage() {
       <Typography.Title level={4} style={{ color: '#0B2545', marginTop: 0 }}>Forgot your password?</Typography.Title>
       <Typography.Paragraph type="secondary">Enter the email address on your account to receive a one-time reset code.</Typography.Paragraph>
       {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
-      <Form form={form} layout="vertical" onFinish={submit}>
-        <Form.Item label="Email" name="email" rules={rules.email}><Input autoComplete="email" /></Form.Item>
+      <Form form={form} layout="vertical" {...live} onFinish={submit}>
+        <Form.Item label="Email" name="email" rules={rules.email} hasFeedback><Input autoComplete="email" /></Form.Item>
         <Button type="primary" htmlType="submit" block loading={busy}>Send reset request</Button>
       </Form>
       <Typography.Paragraph style={{ textAlign: 'center', margin: '16px 0 0' }}><Link to="/login">Back to login</Link></Typography.Paragraph>

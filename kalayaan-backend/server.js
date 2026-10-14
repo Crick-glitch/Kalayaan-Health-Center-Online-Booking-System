@@ -4,7 +4,7 @@ process.env.TZ = process.env.TZ || 'Asia/Manila'; // "today", lead time and cuto
 if (!process.env.MONGO_URI || !process.env.JWT_SECRET) { console.error('Missing MONGO_URI or JWT_SECRET. Copy .env.example to .env and fill them in.'); process.exit(1); }
 const express = require('express'), cors = require('cors'), mongoose = require('mongoose');
 const jwt = require('jsonwebtoken'), bcrypt = require('bcryptjs'), dayjs = require('dayjs');
-const M = require('./models'), { R, ACTIVE, OCCUPY, mins, hhmm, baseSlots, allowed, when, requireEmailVerification } = require('./rules');
+const M = require('./models'), { R, ACTIVE, OCCUPY, statusLabel, mins, hhmm, baseSlots, allowed, when, requireEmailVerification } = require('./rules');
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN }), express.json());
 
@@ -89,7 +89,7 @@ async function slotsFor(prov, svc, date, walkIn, skipId) {
 const SLOT_GONE = () => new E(409, 'SLOT_UNAVAILABLE', 'This appointment slot is no longer available. Please select another time.');
 app.get('/api/providers/:id/slots', auth, wrap(async (q, r) => {
   const [prov, svc] = await Promise.all([M.Provider.findOne({ _id: q.params.id, isArchived: false }), M.Service.findOne({ _id: q.query.serviceId, isArchived: false })]);
-  if (!prov || !svc || !prov.serviceIds.some((i) => i.equals(svc._id))) throw new E(400, 'VALIDATION_ERROR', 'Choose a service that this provider offers.');
+  if (!prov || !svc || !prov.serviceIds.some((i) => i.equals(svc._id))) throw new E(400, 'VALIDATION_ERROR', 'Choose a service that this physician offers.');
   checkWhen(q.query.date);
   // appointmentId: a reschedule must not see the appointment's own slot as taken. walkIn=true (receptionist only): today's slots, no lead time.
   let skipId; if (q.query.appointmentId) { const x = await M.Appointment.findOne({ _id: q.query.appointmentId, isArchived: false }); if (x && (q.user.role !== 'patient' || x.patientId.equals(q.user._id))) skipId = x._id; }
@@ -105,7 +105,7 @@ const staffIds = async () => (await M.User.find({ role: { $in: ['receptionist', 
 app.post('/api/appointments', auth, role('patient', 'receptionist'), wrap(async (q, r) => {
   const b = q.body, staff = q.user.role === 'receptionist', walkIn = staff && !!b.isWalkIn;
   const [prov, svc] = await Promise.all([M.Provider.findOne({ _id: b.providerId, isArchived: false }), M.Service.findOne({ _id: b.serviceId, isArchived: false })]);
-  if (!prov || !svc || !prov.serviceIds.some((i) => i.equals(svc._id))) throw new E(400, 'VALIDATION_ERROR', 'Choose a service and a provider that offers it.');
+  if (!prov || !svc || !prov.serviceIds.some((i) => i.equals(svc._id))) throw new E(400, 'VALIDATION_ERROR', 'Choose a service and a physician that offers it.');
   checkWhen(b.date, b.startTime);
   const patient = await M.User.findOne({ _id: staff ? b.patientId : q.user._id, role: 'patient', isArchived: false, accountStatus: 'active' });
   if (!patient) throw new E(400, 'VALIDATION_ERROR', 'Select an active patient.');
@@ -127,7 +127,7 @@ app.post('/api/appointments', auth, role('patient', 'receptionist'), wrap(async 
       });
     } catch (e) { if (e.code !== 11000) throw e; if (!(e.keyPattern && e.keyPattern.referenceNo) || tries >= 2) throw SLOT_GONE(); } // the DB index is the final guard against double booking
   }
-  if (walkIn) await notify(prov.userId, 'checked_in', 'Patient checked in', `Walk-in. Reference ${a.referenceNo}.`, a); // the doctor must know someone is already waiting
+  if (walkIn) await notify(prov.userId, 'checked_in', 'Patient arrived', `Walk-in. Reference ${a.referenceNo}.`, a); // the doctor must know someone is already waiting
   if (staff) await notify(patient._id, 'appointment_confirmed', 'Appointment confirmed', `${svc.name} on ${when(a.date, a.startTime)}.`, a);
   else for (const id of await staffIds()) await notify(id, 'new_request', 'New appointment request', `${patient.firstName} ${patient.lastName} requested ${svc.name}.`, a);
   r.status(201).json({ appointment: await M.Appointment.findById(a._id).populate(populate) });
@@ -158,7 +158,7 @@ const FLOW = {
 };
 async function guard(u, a, to, b) {
   const who = FLOW[a.status]?.[to];
-  if (!who) throw new E(409, 'INVALID_TRANSITION', `Cannot change an appointment from ${a.status} to ${to}.`);
+  if (!who) throw new E(409, 'INVALID_TRANSITION', `Cannot change an appointment from ${statusLabel(a.status)} to ${statusLabel(to)}.`);
   if (!who.includes(u.role)) throw FORBIDDEN();
   if (u.role === 'patient' && !a.patientId.equals(u._id)) throw FORBIDDEN();
   if (u.role === 'doctor') { const p = await M.Provider.findOne({ userId: u._id }); if (!p || !a.providerId.equals(p._id)) throw FORBIDDEN(); }
@@ -167,7 +167,7 @@ async function guard(u, a, to, b) {
     if (u.role === 'patient') { if (start.diff(dayjs(), 'hour', true) < R.CUTOFF_H) throw new E(409, 'CUTOFF_PASSED', 'Appointments can be cancelled online up to 24 hours before the visit.'); }
     else if (!b.reason || b.reason.trim().length < 5) throw new E(400, 'VALIDATION_ERROR', 'A reason is required.', { reason: 'Enter at least 5 characters.' });
   }
-  if (to === 'Checked In' && a.date !== dayjs().format('YYYY-MM-DD')) throw new E(409, 'INVALID_TRANSITION', 'Check in is only available on the appointment date.');
+  if (to === 'Checked In' && a.date !== dayjs().format('YYYY-MM-DD')) throw new E(409, 'INVALID_TRANSITION', 'Arrival can only be recorded on the appointment date.');
   if (to === 'No Show' && dayjs().isBefore(start.add(R.GRACE, 'minute'))) throw new E(409, 'INVALID_TRANSITION', 'No Show is available 15 minutes after the start time.');
   if (to === 'Completed' && !(b.summary && b.summary.length >= 10 && b.summary.length <= 1000)) throw new E(400, 'VALIDATION_ERROR', 'Summary must be 10 to 1000 characters.', { summary: 'Summary must be 10 to 1000 characters.' });
 }
@@ -183,7 +183,7 @@ app.patch('/api/appointments/:id/status', auth, wrap(async (q, r) => {
   const why = to === 'Cancelled' && q.user.role !== 'patient' ? ` Reason: ${q.body.reason}` : ''; // staff cancellations tell the patient why
   if (TELL[to]) await notify(a.patientId, 'status_' + to.toLowerCase().replace(' ', '_'), TELL[to], `Reference ${a.referenceNo}.${why}`, a); // Checked In notifies the doctor below, not the patient
   if (to === 'Cancelled' && q.user.role === 'patient') for (const id of await staffIds()) await notify(id, 'cancelled_by_patient', 'Appointment cancelled by patient', `Reference ${a.referenceNo}.`, a); // the freed slot matters to staff
-  if (to === 'Checked In') { const p = await M.Provider.findById(a.providerId); await notify(p.userId, 'checked_in', 'Patient checked in', `Reference ${a.referenceNo}.`, a); }
+  if (to === 'Checked In') { const p = await M.Provider.findById(a.providerId); await notify(p.userId, 'checked_in', 'Patient arrived', `Reference ${a.referenceNo}.`, a); }
   r.json({ appointment: await M.Appointment.findById(a._id).populate(populate) });
 }));
 

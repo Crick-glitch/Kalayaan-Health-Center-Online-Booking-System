@@ -73,3 +73,26 @@ body { margin: 0; }
 .slot-btn[disabled] { text-decoration: line-through; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .row-break td { background: #F2F5F7; color: #5B6B7A; }
+
+/* ---------- Patient cards (Create Appointment > Select Patient) ---------- */
+.patient-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.patient-card { position: relative; display: flex; min-height: 112px; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid #CDD8E2; border-radius: 8px; background: #fff; color: #0B2545; cursor: pointer; font: inherit; text-align: left; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+.patient-card:hover { border-color: #0E7C86; box-shadow: 0 2px 8px rgba(14, 124, 134, 0.14); }
+.patient-card.is-selected { border-color: #0E7C86; background: #E8F3FA; box-shadow: 0 0 0 1px #0E7C86; }
+.patient-card-avatar { position: absolute; top: 12px; right: 12px; }
+.patient-card-name { overflow: hidden; padding-right: 58px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.patient-card-line { overflow: hidden; color: #4A5B6C; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.patient-card-phone { padding-right: 58px; margin-top: 6px; }
+.patient-card-email { margin-top: auto; }
+.patient-card-check { position: absolute; top: -8px; right: -8px; border-radius: 50%; background: #fff; color: #0E7C86; font-size: 20px; }
+
+/* ---------- Receptionist schedule ---------- */
+.sched-row { display: flex; align-items: stretch; gap: 16px; padding: 4px 0; }
+.sched-time { flex: 0 0 84px; padding-top: 14px; color: #5B6B7B; font-size: 13px; font-weight: 600; text-align: right; }
+.sched-slot { display: flex; min-height: 56px; flex: 1 1 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 14px; border: 1px solid #E3EAF0; border-radius: 8px; background: #fff; }
+.sched-slot.is-open { border-style: dashed; border-color: #BFE3D0; background: #F4FBF7; color: #1D6E4B; }
+.sched-slot.is-break { border-color: #E3EAF0; background: repeating-linear-gradient(135deg, #F5F7FA, #F5F7FA 8px, #EEF2F6 8px, #EEF2F6 16px); color: #5B6B7B; }
+.sched-slot.is-booked { border-left: 4px solid #0E7C86; box-shadow: 0 1px 2px rgba(11, 37, 69, 0.06); }
+.sched-slot.is-now { box-shadow: 0 0 0 2px #0E7C86; }
+.sched-main { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+@media (max-width: 575px) { .sched-row { flex-direction: column; gap: 4px; } .sched-time { flex: none; padding-top: 0; text-align: left; } }

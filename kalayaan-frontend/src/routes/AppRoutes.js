@@ -51,17 +51,17 @@ const BUILT = {
   'patient/profile': <ProfilePage />, 'patient/settings': <SettingsPage />, 'staff/profile': <ProfilePage />,
   'staff/appointments/create': <BookAppointmentPage staff />, 'staff/patients': <PatientsPage />, 'staff/schedules': <SchedulesPage />,
   'doctor/schedule': <SchedulePage />, 'doctor/patients': <PatientsPage variant="doctor" />, 'doctor/profile': <DoctorProfilePage />,
-  'admin/dashboard': <AdminDashboardPage />, 'admin/users': <UsersPage />, 'admin/users/:id': <UserDetailsPage />, 'admin/patients': <PatientsPage variant="admin" />,
+  'admin/dashboard': <AdminDashboardPage />, 'admin/employees': <UsersPage />, 'admin/employees/:id': <UserDetailsPage />, 'admin/patients': <PatientsPage variant="admin" />,
   'admin/providers': <AdminProvidersPage />, 'admin/services': <AdminServicesPage />, 'admin/schedules': <AdminSchedulesPage />, 'admin/archive': <ArchivePage />, 'admin/settings': <SettingsPage />,
   'patient/services': <ServicesPage />, 'patient/providers': <ProvidersPage />, 'patient/providers/:id': <ProviderDetailsPage />, 'staff/providers': <ProvidersPage readOnly />,
 };
 const PUBLIC = Object.keys(BUILT).filter((k) => !k.includes('/') || k === 'providers/:id');
 const ROLE_OF = { patient: 'patient', doctor: 'doctor', staff: 'receptionist', admin: 'admin' };
 const PORTAL = {
-  patient: [['dashboard', 'Dashboard'], ['book-appointment', 'Book Appointment'], ['appointments', 'My Appointments'], ['appointments/:id', 'Appointment details'], ['services', 'Services'], ['providers', 'Providers'], ['providers/:id', 'Provider details'], ['notifications', 'Notifications'], ['profile', 'Profile'], ['settings', 'Settings']],
+  patient: [['dashboard', 'Dashboard'], ['book-appointment', 'Book Appointment'], ['appointments', 'My Appointments'], ['appointments/:id', 'Appointment details'], ['services', 'Services'], ['providers', 'Physicians'], ['providers/:id', 'Physician details'], ['notifications', 'Notifications'], ['profile', 'Profile'], ['settings', 'Settings']],
   doctor: [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['appointments/:id', 'Appointment details'], ['schedule', 'Schedule'], ['patients', 'Patients'], ['notifications', 'Notifications'], ['profile', 'Profile']],
-  staff: [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['appointments/create', 'Create appointment'], ['appointments/:id', 'Appointment details'], ['patients', 'Patients'], ['providers', 'Providers'], ['schedules', 'Schedules'], ['notifications', 'Notifications'], ['profile', 'Profile']],
-  admin: [['dashboard', 'Dashboard'], ['users', 'Users'], ['users/:id', 'User details'], ['patients', 'Patients'], ['providers', 'Providers'], ['services', 'Services'], ['appointments', 'Appointments'], ['appointments/:id', 'Appointment details'], ['schedules', 'Schedules'], ['archive', 'Archive'], ['notifications', 'Notifications'], ['settings', 'Settings']],
+  staff: [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['appointments/create', 'Create appointment'], ['appointments/:id', 'Appointment details'], ['patients', 'Patients'], ['providers', 'Physicians'], ['schedules', 'Schedules'], ['notifications', 'Notifications'], ['profile', 'Profile']],
+  admin: [['dashboard', 'Dashboard'], ['employees', 'Employees'], ['employees/:id', 'Employee details'], ['patients', 'Patients'], ['providers', 'Physicians'], ['services', 'Services'], ['appointments', 'Appointments'], ['appointments/:id', 'Appointment details'], ['schedules', 'Schedules'], ['archive', 'Archive'], ['notifications', 'Notifications'], ['settings', 'Settings']],
 };
 const ErrorPage = ({ code, title, sub }) => <Result status={code} title={title} subTitle={sub} extra={<Link to="/"><Button type="primary">Go home</Button></Link>} />;
 

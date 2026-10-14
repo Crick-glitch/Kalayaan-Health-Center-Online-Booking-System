@@ -4,7 +4,8 @@ import { Alert, Button, Card, Checkbox, Col, DatePicker, Divider, Form, Input, R
 import dayjs from 'dayjs';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
-import { rules } from '../../utils/validators';
+import PasswordChecklist from '../../components/forms/PasswordChecklist';
+import { live, rules } from '../../utils/validators';
 
 const MAP = { emergencyName: ['emergencyContact', 'name'], emergencyNumber: ['emergencyContact', 'contactNumber'] }; // API field names -> form fields
 const col = { xs: 24, md: 12 };
@@ -29,19 +30,19 @@ export default function RegisterPage() {
         <Typography.Title level={4} style={{ color: '#0B2545', marginTop: 0 }}>Create a patient account</Typography.Title>
         <Typography.Paragraph type="secondary">Fields marked with * are required.</Typography.Paragraph>
         {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
-        <Form form={form} layout="vertical" onFinish={submit} scrollToFirstError>
+        <Form form={form} layout="vertical" {...live} onFinish={submit} scrollToFirstError>
           <Divider orientation="left" orientationMargin={0}>Personal information</Divider>
           <Row gutter={16}>
-            <Col {...col}><Form.Item label="First name" name="firstName" rules={rules.name}><Input autoComplete="given-name" /></Form.Item></Col>
-            <Col {...col}><Form.Item label="Middle name (optional)" name="middleName" rules={rules.optionalName}><Input autoComplete="additional-name" /></Form.Item></Col>
-            <Col {...col}><Form.Item label="Last name" name="lastName" rules={rules.name}><Input autoComplete="family-name" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="First name" name="firstName" rules={rules.name} hasFeedback><Input autoComplete="given-name" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="Middle name (optional)" name="middleName" rules={rules.optionalName} hasFeedback><Input autoComplete="additional-name" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="Last name" name="lastName" rules={rules.name} hasFeedback><Input autoComplete="family-name" /></Form.Item></Col>
             <Col {...col}><Form.Item label="Date of birth" name="dateOfBirth" rules={rules.dob}><DatePicker style={{ width: '100%' }} format="MMMM D, YYYY" disabledDate={(d) => d.isAfter(dayjs())} /></Form.Item></Col>
             <Col {...col}><Form.Item label="Sex" name="sex" rules={[{ required: true, message: 'Select an option.' }]}><Select options={[{ value: 'Female', label: 'Female' }, { value: 'Male', label: 'Male' }]} /></Form.Item></Col>
           </Row>
           <Divider orientation="left" orientationMargin={0}>Contact</Divider>
           <Row gutter={16}>
-            <Col {...col}><Form.Item label="Contact number" name="contactNumber" rules={rules.phone}><Input inputMode="tel" placeholder="09XXXXXXXXX" /></Form.Item></Col>
-            <Col {...col}><Form.Item label="Email" name="email" rules={rules.email}><Input autoComplete="email" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="Contact number" name="contactNumber" rules={rules.phone} hasFeedback><Input inputMode="tel" placeholder="09XXXXXXXXX" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="Email" name="email" rules={rules.email} hasFeedback><Input autoComplete="email" /></Form.Item></Col>
             <Col span={24}><Form.Item label="Address" name="address" rules={rules.address}><Input.TextArea rows={2} placeholder="House number, street, barangay, city" /></Form.Item></Col>
           </Row>
           <Divider orientation="left" orientationMargin={0}>Emergency contact</Divider>
@@ -52,7 +53,7 @@ export default function RegisterPage() {
           </Row>
           <Divider orientation="left" orientationMargin={0}>Account</Divider>
           <Row gutter={16}>
-            <Col {...col}><Form.Item label="Password" name="password" rules={rules.password} extra="At least 8 characters with upper and lower case letters and a number."><Input.Password autoComplete="new-password" /></Form.Item></Col>
+            <Col {...col}><Form.Item label="Password" name="password" rules={rules.password}><Input.Password autoComplete="new-password" /></Form.Item><PasswordChecklist /></Col>
             <Col {...col}><Form.Item label="Confirm password" name="confirm" dependencies={['password']} rules={rules.confirm()}><Input.Password autoComplete="new-password" /></Form.Item></Col>
           </Row>
           <Form.Item name="agreement" valuePropName="checked" rules={[{ validator: (_, v) => (v ? Promise.resolve() : Promise.reject(new Error('You must agree to continue.'))) }]}>

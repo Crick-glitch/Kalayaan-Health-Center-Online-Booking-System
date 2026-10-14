@@ -11,6 +11,7 @@ import AsyncBoundary from '../../components/common/AsyncBoundary';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import handleApiError from '../../utils/handleApiError';
+import { live } from '../../utils/validators';
 import { formatLong, toDateString } from '../../utils/dateUtils';
 import { fullName } from '../../utils/formatters';
 
@@ -27,15 +28,15 @@ export default function DoctorProfilePage() {
   };
   return (
     <>
-      <PageHeader title="Profile" description="Your title and bio are shown to patients when they choose a doctor." actions={!editing && mine && <Button type="primary" onClick={start}>Edit profile</Button>} />
+      <PageHeader title="Profile" description="Your title and bio are shown to patients when they choose a physician." actions={!editing && mine && <Button type="primary" onClick={start}>Edit profile</Button>} />
       <Card title="Personal information" style={{ marginBottom: 16 }}>
         <Descriptions column={{ xs: 1, sm: 2 }} items={[
           { label: 'Name', children: fullName(user) }, { label: 'Date of birth', children: formatLong(user.dateOfBirth) }, { label: 'Sex', children: user.sex || '—' },
           { label: 'Contact number', children: user.contactNumber }, { label: 'Email', children: user.email }, { label: 'Address', span: 2, children: user.address || '—' }]} />
       </Card>
-      <AsyncBoundary loading={providers.loading} error={providers.error} onRetry={providers.reload} loadingText="Loading your profile..." empty={!mine} emptyText="Your provider profile was not found." emptyHint="Please contact the administrator.">
+      <AsyncBoundary loading={providers.loading} error={providers.error} onRetry={providers.reload} loadingText="Loading your profile..." empty={!mine} emptyText="Your physician profile was not found." emptyHint="Please contact the administrator.">
         {mine && <Card title="Professional information" style={{ marginBottom: 16 }}>
-          <Form form={form} layout="vertical" onFinish={setPending}>
+          <Form form={form} layout="vertical" {...live} onFinish={setPending}>
             {editing ? <>
               <Form.Item label="Title" name="title" rules={[{ max: 40, message: 'Use up to 40 characters.' }]} extra="For example: MD, FPAFP"><Input maxLength={40} /></Form.Item>
               <Form.Item label="Bio" name="bio" rules={[{ max: 500, message: 'Use up to 500 characters.' }]}><Input.TextArea rows={4} showCount maxLength={500} /></Form.Item>
@@ -49,7 +50,7 @@ export default function DoctorProfilePage() {
         </Card>}
       </AsyncBoundary>
       <Card title="Account information">
-        <Descriptions column={{ xs: 1, sm: 3 }} items={[{ label: 'Role', children: 'Doctor' }, { label: 'Status', children: <StatusBadge type="account" status={user.accountStatus} /> }, { label: 'Member since', children: formatLong(toDateString(user.createdAt)) }]} />
+        <Descriptions column={{ xs: 1, sm: 3 }} items={[{ label: 'Role', children: 'Physician' }, { label: 'Status', children: <StatusBadge type="account" status={user.accountStatus} /> }, { label: 'Member since', children: formatLong(toDateString(user.createdAt)) }]} />
       </Card>
       <ConfirmModal open={!!pending} title="Save your changes?" okText="Save changes" onConfirm={save} onCancel={() => setPending(null)}>Your title and bio will be updated.</ConfirmModal>
     </>

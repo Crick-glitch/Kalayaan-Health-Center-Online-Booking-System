@@ -16,10 +16,10 @@ export default function ProviderDetailsPage() {
   const p = data && data.provider, tpl = (data && data.schedule && data.schedule.weeklyTemplate) || [];
   const rows = DAYS.map((name, day) => { const d = tpl.find((x) => x.day === day); return { key: day, day: name, hours: d ? formatTimeRange(d.startTime, d.endTime) : 'Not working', brk: d && d.break && d.break.startTime ? formatTimeRange(d.break.startTime, d.break.endTime) : '—' }; });
   return (
-    <AsyncBoundary loading={loading} error={error} onRetry={reload} loadingText="Loading provider..." empty={!p} emptyText="Provider not found.">
+    <AsyncBoundary loading={loading} error={error} onRetry={reload} loadingText="Loading physician..." empty={!p} emptyText="Physician not found.">
       {p && <>
         <PageHeader title={`Dr. ${p.user.firstName} ${p.user.lastName}`} description={`${p.specialization}${p.title ? ` · ${p.title}` : ''}`}
-          actions={<Link to={`/patient/book-appointment?providerId=${p._id}`}><Button type="primary" icon={<CalendarOutlined />}>Book with this provider</Button></Link>} />
+          actions={<Link to={`/patient/book-appointment?providerId=${p._id}`}><Button type="primary" icon={<CalendarOutlined />}>Book with this physician</Button></Link>} />
         <Row gutter={[16, 16]}>
           <Col xs={24} lg={14}><Card title="Weekly working hours"><Table size="middle" pagination={false} scroll={{ x: 'max-content' }} dataSource={rows} columns={[{ title: 'Day', dataIndex: 'day' }, { title: 'Hours', dataIndex: 'hours' }, { title: 'Break', dataIndex: 'brk' }]} /></Card></Col>
           <Col xs={24} lg={10}>

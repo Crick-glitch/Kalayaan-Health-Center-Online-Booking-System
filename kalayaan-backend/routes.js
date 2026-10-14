@@ -155,14 +155,16 @@ module.exports = (app, H) => {
   app.get('/api/users/:id', ...admin, wrap(async (q, r) => r.json({ user: await find(M.User, q.params.id) })));
   app.post('/api/users', ...admin, wrap(async (q, r) => {
     const b = q.body; checkUser(b, true);
-    if (!['patient', 'doctor', 'receptionist', 'admin'].includes(b.role)) throw new E(400, 'VALIDATION_ERROR', 'Choose a role.', { role: 'Choose a role.' });
+    if (!['doctor', 'receptionist', 'admin'].includes(b.role)) throw new E(400, 'VALIDATION_ERROR', 'Choose a role: Admin, Receptionist or Physician.', { role: 'Choose Admin, Receptionist or Physician.' }); // patients register themselves or are added by the receptionist
     if (await M.User.exists({ email: b.email.toLowerCase() })) throw new E(409, 'EMAIL_TAKEN', 'An account with this email already exists.', { email: 'An account with this email already exists.' });
     const u = await M.User.create({ ...b, isVerified: true, accountStatus: 'active', isArchived: false, passwordHash: await bcrypt.hash(b.password, 10) });
     if (u.role === 'doctor') { const p = await M.Provider.create({ userId: u._id, serviceIds: [] }); await M.Schedule.create({ providerId: p._id, weeklyTemplate: [] }); }
     r.status(201).json({ user: u });
   }));
   app.put('/api/users/:id', ...admin, wrap(async (q, r) => {
-    const u = await find(M.User, q.params.id, { isArchived: false }); checkUser({ ...u.toObject(), ...q.body });
+    const u = await find(M.User, q.params.id, { isArchived: false });
+     if (u.role === 'patient') throw new E(403, 'PATIENT_INFO_LOCKED', 'Patient information can only be changed by the patient or the receptionist.'); // the admin may view patients, archive them and set their status
+     checkUser({ ...u.toObject(), ...q.body });
     for (const k of ['firstName', 'middleName', 'lastName', 'contactNumber', 'dateOfBirth', 'sex', 'address', 'emergencyContact']) if (k in q.body) u[k] = q.body[k]; // role, status and archive have their own endpoints
     await u.save(); r.json({ user: u });
   }));
@@ -172,15 +174,8 @@ module.exports = (app, H) => {
     if (s !== 'active') await lastAdmin(u);
     u.accountStatus = s; await u.save(); r.json({ user: u });
   }));
-  app.patch('/api/users/:id/role', ...admin, wrap(async (q, r) => {
-    notSelf(q); const u = await find(M.User, q.params.id, { isArchived: false }), to = q.body.role;
-    if (!['patient', 'doctor', 'receptionist', 'admin'].includes(to) || to === u.role) throw new E(400, 'VALIDATION_ERROR', 'Choose a different role.');
-    await lastAdmin(u); blocked(await userUpcoming(u), 'user'); // as patient or as provider
-    const old = await M.Provider.findOne({ userId: u._id, isArchived: false });
-    if (u.role === 'doctor' && old) { stamp(old, q.user, 'Role changed'); await old.save(); } // changing away from doctor archives the profile
-    if (to === 'doctor') { const p = await M.Provider.create({ userId: u._id, serviceIds: [] }); await M.Schedule.create({ providerId: p._id, weeklyTemplate: [] }); }
-    u.role = to; await u.save(); r.json({ user: u });
-  }));
+  // A role is chosen when the account is created and never changes afterwards (create a new account instead).
+  app.patch('/api/users/:id/role', ...admin, wrap(async () => { throw new E(403, 'ROLE_LOCKED', 'A role cannot be changed after the account is created.'); }));
   app.patch('/api/users/:id/archive', ...admin, wrap(async (q, r) => {
     notSelf(q); const u = await find(M.User, q.params.id, { isArchived: false });
     await lastAdmin(u); blocked(await userUpcoming(u), 'user');
@@ -226,13 +221,13 @@ module.exports = (app, H) => {
   const checkServices = async (ids) => { if (ids && (await M.Service.countDocuments({ _id: { $in: ids }, isArchived: false })) !== ids.length) throw new E(400, 'VALIDATION_ERROR', 'Choose active services only.', { serviceIds: 'Choose active services only.' }); };
   app.get('/api/providers', wrap(async (q, r) => r.json({ providers: await withInfo(M.Provider.find({ isArchived: false })) })));
   app.get('/api/providers/:id', wrap(async (q, r) => {
-    const p = await withInfo(M.Provider.findOne({ _id: q.params.id, isArchived: false })); if (!p) throw new E(404, 'NOT_FOUND', 'Provider not found.');
+    const p = await withInfo(M.Provider.findOne({ _id: q.params.id, isArchived: false })); if (!p) throw new E(404, 'NOT_FOUND', 'Physician not found.');
     r.json({ provider: p, schedule: await M.Schedule.findOne({ providerId: p._id }) });
   }));
   app.post('/api/providers', ...admin, wrap(async (q, r) => {
     const b = q.body, u = await M.User.findOne({ _id: b.userId, role: 'doctor', isArchived: false, accountStatus: 'active' });
-    if (!u) throw new E(400, 'VALIDATION_ERROR', 'Choose an active doctor account.', { userId: 'Choose an active doctor account.' });
-    if (await M.Provider.exists({ userId: u._id, isArchived: false })) throw new E(409, 'ALREADY_EXISTS', 'This doctor already has a provider profile.');
+    if (!u) throw new E(400, 'VALIDATION_ERROR', 'Choose an active physician account.', { userId: 'Choose an active physician account.' });
+    if (await M.Provider.exists({ userId: u._id, isArchived: false })) throw new E(409, 'ALREADY_EXISTS', 'This physician already has a profile.');
     await checkServices(b.serviceIds);
     const p = await M.Provider.create({ userId: u._id, title: b.title, specialization: b.specialization, bio: b.bio, serviceIds: b.serviceIds || [] });
     await M.Schedule.create({ providerId: p._id, weeklyTemplate: [] }); r.status(201).json({ provider: p });
@@ -249,7 +244,7 @@ module.exports = (app, H) => {
     await p.save(); r.json({ provider: p });
   }));
   app.patch('/api/providers/:id/archive', ...admin, wrap(async (q, r) => {
-    const p = await find(M.Provider, q.params.id, { isArchived: false }); blocked(await upcoming({ providerId: p._id }), 'provider');
+    const p = await find(M.Provider, q.params.id, { isArchived: false }); blocked(await upcoming({ providerId: p._id }), 'physician');
     stamp(p, q.user, q.body.reason); await p.save(); // one action archives the provider and the linked doctor account
     const u = await M.User.findOne({ _id: p.userId, isArchived: false }); if (u) { stamp(u, q.user, q.body.reason); await u.save(); }
     r.json({ provider: p });
@@ -323,11 +318,9 @@ module.exports = (app, H) => {
     try { await a.save(); } catch (e) { if (e.code === 11000) throw GONE(); throw e; }
     await notify(a.patientId, 'rescheduled', 'Appointment rescheduled', `Now on ${when(a.date, a.startTime)}.`, a); await sendAppt(r, a);
   }));
-  for (const act of ['archive', 'restore']) app.patch(`/api/appointments/:id/${act}`, ...admin, wrap(async (q, r) => {
-    const a = await find(M.Appointment, q.params.id, { isArchived: act === 'restore' });
-    if (act === 'archive') { if (!['Completed', 'Cancelled', 'No Show'].includes(a.status)) throw new E(409, 'INVALID_TRANSITION', 'Only finished appointments can be archived.'); stamp(a, q.user, q.body.reason); } else unstamp(a);
-    await a.save(); await sendAppt(r, a);
-  }));
+  // Appointments are no longer archived from the app (the admin cannot remove them). Archived ones from before can still be restored.
+  app.patch('/api/appointments/:id/archive', auth, wrap(async () => { throw new E(403, 'FORBIDDEN', 'Appointments cannot be archived.'); }));
+  app.patch('/api/appointments/:id/restore', ...admin, wrap(async (q, r) => { const a = await find(M.Appointment, q.params.id, { isArchived: true }); unstamp(a); await a.save(); await sendAppt(r, a); }));
 
   // ---------- Patients (directory for staff) ----------
   // GET: receptionist and admin see every active patient, a doctor only patients of their own appointments.
@@ -382,7 +375,7 @@ module.exports = (app, H) => {
     const hidden = new Set(provs.map((p) => String(p.userId))); // a provider and its doctor account share one row
     const row = (type, d, name) => ({ type, _id: d._id, name, archivedAt: d.archivedAt, archivedBy: d.archivedBy ? `${d.archivedBy.firstName} ${d.archivedBy.lastName}` : '', reason: d.archiveReason, record: d });
     let rows = [...users.filter((u) => !hidden.has(String(u._id))).map((u) => row('user', u, `${u.firstName} ${u.lastName}`)),
-      ...provs.map((p) => row('provider', p, p.user ? `Dr. ${p.user.firstName} ${p.user.lastName}` : 'Provider')), ...svcs.map((s) => row('service', s, s.name)),
+      ...provs.map((p) => row('provider', p, p.user ? `Dr. ${p.user.firstName} ${p.user.lastName}` : 'Physician')), ...svcs.map((s) => row('service', s, s.name)),
       ...appts.map((a) => row('appointment', a, `${a.referenceNo} · ${a.patient ? a.patient.firstName + ' ' + a.patient.lastName : ''} · ${a.service ? a.service.name : ''}`))];
     const counts = rows.reduce((c, x) => ((c[x.type] = (c[x.type] || 0) + 1), c), {}), total = rows.length;
     if (q.query.type) rows = rows.filter((x) => x.type === q.query.type);

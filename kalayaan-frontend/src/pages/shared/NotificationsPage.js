@@ -1,7 +1,8 @@
 // NotificationsPage.js - the full notification list. ONE page for every role (mounted at /patient, /doctor, /staff and /admin).
 // Filter All / Unread / Read, mark one or all as read, delete one (asks first). Opening a notification marks it read and goes to its appointment.
 import { useState } from 'react';
-import { Button, Card, Pagination, Segmented, message } from 'antd';
+import { Button, Card, Segmented, message } from 'antd';
+import AppPagination, { PAGE_SIZE } from '../../components/common/AppPagination';
 import { useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
 import useFetch from '../../hooks/useFetch';
@@ -13,7 +14,6 @@ import NotificationItem from '../../components/notifications/NotificationItem';
 import handleApiError from '../../utils/handleApiError';
 import { ROLE_PREFIX } from '../../config/constants';
 
-const PAGE_SIZE = 10;
 const EMPTY = { all: ['No notifications yet.', 'You will see updates about your appointments here.'], unread: ['You are all caught up.', 'There are no unread notifications.'], read: ['No read notifications.', ''] };
 
 export default function NotificationsPage() {
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
         <Card styles={{ body: { padding: 0 } }}>
           {shown.map((n) => <NotificationItem key={n._id} notification={n} onOpen={open} onRead={(x) => run(() => notificationService.markRead(x._id))} onDelete={setDel} />)}
         </Card>
-        {rows.length > PAGE_SIZE && <Pagination style={{ marginTop: 16, textAlign: 'right' }} current={page} pageSize={PAGE_SIZE} total={rows.length} showSizeChanger={false} onChange={setPage} />}
+        {rows.length > PAGE_SIZE && ( <AppPagination total={rows.length} page={page} onChange={setPage} />)}
       </AsyncBoundary>
       <ConfirmModal open={!!del} danger title="Delete this notification?" okText="Delete" onConfirm={remove} onCancel={() => setDel(null)}>
         {del && <><strong>{del.title}</strong><div>This cannot be undone.</div></>}

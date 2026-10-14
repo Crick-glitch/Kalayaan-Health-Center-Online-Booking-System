@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, Drawer, Form, Grid, Input, Select, Space, message } from 'antd';
 import serviceService from '../../services/serviceService';
 import handleApiError from '../../utils/handleApiError';
+import { live } from '../../utils/validators';
 
 const CATEGORIES = ['Consultation', 'Preventive', 'Diagnostic'].map((c) => ({ value: c, label: c }));
 const DURATIONS = [15, 30, 45].map((m) => ({ value: m, label: `${m} minutes` }));
@@ -21,8 +22,8 @@ export default function ServiceFormDrawer({ open, service, onClose, onSaved }) {
   return (
     <Drawer open={open} destroyOnClose maskClosable={false} width={wide ? 480 : '100%'} title={edit ? `Edit ${service.name}` : 'Add service'} onClose={busy ? undefined : onClose}
       footer={<Space style={{ width: '100%', justifyContent: 'flex-end' }}><Button onClick={onClose} disabled={busy}>Cancel</Button><Button type="primary" loading={busy} onClick={() => form.submit()}>{edit ? 'Save changes' : 'Add service'}</Button></Space>}>
-      <Form form={form} layout="vertical" onFinish={submit} scrollToFirstError initialValues={edit ? { name: service.name, category: service.category, durationMinutes: service.durationMinutes, description: service.description, requirements: service.requirements } : {}}>
-        <Form.Item label="Name" name="name" rules={[{ required: true, whitespace: true, message: 'Enter a name.' }, { min: 2, max: 80, message: 'Use 2 to 80 characters.' }]}><Input maxLength={80} /></Form.Item>
+      <Form form={form} layout="vertical" {...live} onFinish={submit} scrollToFirstError initialValues={edit ? { name: service.name, category: service.category, durationMinutes: service.durationMinutes, description: service.description, requirements: service.requirements } : {}}>
+        <Form.Item label="Name" name="name" rules={[{ required: true, whitespace: true, message: 'Enter a name.' }, { min: 2, max: 80, message: 'Use 2 to 80 characters.' }]} hasFeedback><Input maxLength={80}/></Form.Item>
         <Form.Item label="Category" name="category" rules={[{ required: true, message: 'Choose a category.' }]}><Select placeholder="Choose a category" options={CATEGORIES} /></Form.Item>
         <Form.Item label="Duration" name="durationMinutes" rules={[{ required: true, message: 'Choose a duration.' }]} extra="Each appointment takes this long, and it sets the booking slots."><Select placeholder="Choose a duration" options={DURATIONS} /></Form.Item>
         <Form.Item label="Description" name="description" rules={[{ max: 500, message: 'Use up to 500 characters.' }]}><Input.TextArea rows={3} showCount maxLength={500} /></Form.Item>

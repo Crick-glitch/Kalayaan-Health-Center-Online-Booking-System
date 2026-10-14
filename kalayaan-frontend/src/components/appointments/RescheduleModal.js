@@ -13,6 +13,7 @@ import TimeSlotPicker from './TimeSlotPicker';
 import handleApiError from '../../utils/handleApiError';
 import { baseSlots } from '../../utils/slotUtils';
 import { LIMITS } from '../../utils/appointmentRules';
+import { textProblem } from '../../utils/validators';
 import { formatLong, formatTimeRange, parseDate, toDateString } from '../../utils/dateUtils';
 import { fullName } from '../../utils/formatters';
 
@@ -24,6 +25,7 @@ export default function RescheduleModal({ appointment: a, open, onClose, onDone,
   useEffect(() => { if (open) setS(FRESH); }, [open]);
   const sched = useFetch(() => (open && a ? providerService.get(a.providerId) : Promise.resolve(null)), [open, a && a.providerId]);
   const slots = useFetch(() => (open && a && s.date ? providerService.slots(a.providerId, a.serviceId, s.date, { appointmentId: a._id }) : Promise.resolve(null)), [open, s.date]);
+  const reasonProblem = s.errors.reason || textProblem(s.reason, 5, 300, s.reason.length > 0); // checked while typing
   const tpl = (sched.data && sched.data.schedule && sched.data.schedule.weeklyTemplate) || [];
   const all = a && s.date ? baseSlots({ weeklyTemplate: tpl }, s.date, a.service.durationMinutes) : [];
 
@@ -64,8 +66,8 @@ export default function RescheduleModal({ appointment: a, open, onClose, onDone,
         </div>}
         {!direct && <div style={{ marginTop: 16 }}>
           <label htmlFor="resched-reason"><span style={{ color: '#C0392B' }}>* </span>Reason for the change</label>
-          <Input.TextArea id="resched-reason" rows={3} showCount maxLength={300} value={s.reason} status={s.errors.reason ? 'error' : undefined} onChange={(e) => set({ reason: e.target.value, errors: { ...s.errors, reason: undefined } })} />
-          {s.errors.reason && <Typography.Text type="danger">{s.errors.reason}</Typography.Text>}
+          <Input.TextArea id="resched-reason" rows={3} showCount maxLength={300} value={s.reason} status={reasonProblem ? 'error' : undefined} onChange={(e) => set({ reason: e.target.value, errors: { ...s.errors, reason: undefined } })} />
+          {reasonProblem && <Typography.Text type="danger">{reasonProblem}</Typography.Text>}
         </div>}
       </>}
     </Modal>

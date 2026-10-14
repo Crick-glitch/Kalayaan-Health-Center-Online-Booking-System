@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
   const bp = Grid.useBreakpoint(), cols = bp.xl ? 5 : bp.md ? 3 : 2, today = todayString();
   const { data, loading, error, reload } = useFetch(() => Promise.all([patientService.list({ limit: 1 }), providerService.list(), appointmentService.list({ date: today }), appointmentService.list({ status: 'Pending' }), appointmentService.list({ status: 'Completed' })]), []);
   const cards = data && [
-    ['Total patients', data[0].total, '/admin/patients'], ['Total providers', data[1].length, '/admin/providers'], ["Today's appointments", data[2].length, `/admin/appointments?date=${today}`],
+    ['Total patients', data[0].total, '/admin/patients'], ['Total physicians', data[1].length, '/admin/providers'], ["Today's appointments", data[2].length, `/admin/appointments?date=${today}`],
     ['Pending', data[3].length, '/admin/appointments?status=Pending'], ['Completed', data[4].length, '/admin/appointments?status=Completed'],
   ];
   return (

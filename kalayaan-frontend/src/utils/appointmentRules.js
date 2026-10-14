@@ -31,7 +31,6 @@ export function getAvailableActions(a, u) {
   if (can(S.CANCELLED) && (u.role !== 'patient' || hoursUntil(a) >= LIMITS.CANCEL_CUTOFF_HOURS)) out.push('cancel');
   if (a.status === S.CONFIRMED && u.role === 'patient' && mine(a, u) && !hasPending(a) && hoursUntil(a) >= LIMITS.CANCEL_CUTOFF_HOURS) out.push('requestReschedule');
   if (a.status === S.CONFIRMED && ['receptionist', 'admin'].includes(u.role)) out.push(...(hasPending(a) ? ['applyReschedule', 'rejectReschedule'] : []), 'reschedule');
-  if (u.role === 'admin' && TERMINAL_STATUSES.includes(a.status)) out.push('archive');
   return out;
 }
 // Throws a coded error when the change is not allowed. Used by the mock services (the backend does the same).
@@ -41,7 +40,7 @@ export function validateTransition(a, to, u, payload = {}) {
   if (!who.includes(u.role) || !mine(a, u)) throw apiError(403, 'FORBIDDEN', 'You do not have permission to do that.');
   if (to === S.CANCELLED && u.role === 'patient' && hoursUntil(a) < LIMITS.CANCEL_CUTOFF_HOURS) throw apiError(409, 'CUTOFF_PASSED', 'Appointments can be cancelled online up to 24 hours before the visit.');
   if (to === S.CANCELLED && u.role !== 'patient' && !(payload.reason && payload.reason.trim().length >= 5)) throw apiError(400, 'VALIDATION_ERROR', 'A reason is required.', { reason: 'Enter at least 5 characters.' });
-  if (to === S.CHECKED_IN && !isToday(a.date)) throw apiError(409, 'INVALID_TRANSITION', 'Check in is only available on the appointment date.');
+  if (to === S.CHECKED_IN && !isToday(a.date)) throw apiError(409, 'INVALID_TRANSITION', 'Arrival can only be recorded on the appointment date.');
   if (to === S.NO_SHOW && !pastGrace(a)) throw apiError(409, 'INVALID_TRANSITION', 'No Show is available 15 minutes after the start time.');
   if (to === S.COMPLETED && !(payload.summary && payload.summary.length >= 10 && payload.summary.length <= 1000)) throw apiError(400, 'VALIDATION_ERROR', 'Summary must be 10 to 1000 characters.', { summary: 'Summary must be 10 to 1000 characters.' });
 }

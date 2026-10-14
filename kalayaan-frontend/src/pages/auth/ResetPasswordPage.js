@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { Alert, Button, Card, Form, Input, Result, Typography, message } from 'antd';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import authService from '../../services/authService';
-import { rules } from '../../utils/validators';
+import PasswordChecklist from '../../components/forms/PasswordChecklist';
+import { live, rules } from '../../utils/validators';
 
 export default function ResetPasswordPage() {
   const [params] = useSearchParams(), navigate = useNavigate(), location = useLocation();
@@ -27,9 +28,10 @@ export default function ResetPasswordPage() {
       <Typography.Paragraph type="secondary">Enter the six-digit code sent to {email}. Codes expire after 10 minutes.</Typography.Paragraph>
       {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}
       {developmentCode && <Alert type="warning" showIcon message="Local development code" description={<Typography.Text code>{developmentCode}</Typography.Text>} style={{ marginBottom: 16 }} />}
-      <Form layout="vertical" onFinish={submit}>
-        <Form.Item label="Reset code" name="code" rules={[{ required: true }, { pattern: /^\d{6}$/, message: 'Enter the six-digit code.' }]}><Input inputMode="numeric" maxLength={6} autoComplete="one-time-code" /></Form.Item>
-        <Form.Item label="New password" name="password" rules={rules.password} extra="At least 8 characters with upper and lower case letters and a number."><Input.Password autoComplete="new-password" /></Form.Item>
+      <Form layout="vertical" {...live} onFinish={submit}>
+        <Form.Item label="Reset code" name="code" rules={[{ required: true, message: 'Enter the six-digit code.' }, { pattern: /^\d{6}$/, message: 'Enter the six-digit code.' }]}><Input inputMode="numeric" maxLength={6} autoComplete="one-time-code" /></Form.Item>
+        <Form.Item label="New password" name="password" rules={rules.password}><Input.Password autoComplete="new-password" /></Form.Item>
+         <PasswordChecklist />  
         <Form.Item label="Confirm password" name="confirm" dependencies={['password']} rules={rules.confirm()}><Input.Password autoComplete="new-password" /></Form.Item>
         <Button type="primary" htmlType="submit" block loading={busy}>Save password</Button>
       </Form>
