@@ -110,7 +110,7 @@ function summarize(appts, users, providers, today) {
       { n: pending.length, icon: <ClockCircleOutlined />, tone: AMBER, to: '/admin/appointments?status=Pending', title: `${plural(pending.length, 'appointment request')} waiting`, text: 'Pending requests need to be confirmed or cancelled.' },
       { n: reschedules.length, icon: <SwapOutlined />, tone: TEAL, to: '/admin/appointments', title: `${plural(reschedules.length, 'reschedule request')}`, text: 'Patients asked for a new date or time.' },
       { n: stale.length, icon: <ExclamationCircleOutlined />, tone: RED, to: '/admin/appointments', title: `${plural(stale.length, 'past appointment')} still open`, text: 'The date has passed but the status was never closed.' },
-      { n: noServices.length, icon: <MedicineBoxOutlined />, tone: BLUE, to: '/admin/providers', title: `${plural(noServices.length, 'physician')} without services`, text: 'Patients cannot book a physician who offers no service.' },
+      { n: noServices.length, icon: <MedicineBoxOutlined />, tone: BLUE, to: '/admin/employees?role=doctor', title: `${plural(noServices.length, 'physician')} without services`, text: 'Patients cannot book a physician who offers no service.' },
       { n: inactiveStaff.length, icon: <IdcardOutlined />, tone: NAVY, to: '/admin/employees', title: `${plural(inactiveStaff.length, 'employee account')} not active`, text: 'Inactive or suspended employees cannot log in.' },
     ].filter((x) => x.n > 0),
   };
@@ -222,7 +222,7 @@ function Dashboard({ appts, users, providers, today, firstName }) {
           </Card>
         </Col>
         <Col xs={24} lg={8}>
-          <Card className="ad-card ad-rise" style={{ '--i': 6 }} title="Physicians today" extra={<Link to="/admin/providers">All physicians</Link>}>
+          <Card className="ad-card ad-rise" style={{ '--i': 6 }} title="Physicians today" extra={<Link to="/admin/employees?role=doctor">All physicians</Link>}>
             {s.doctors.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No physicians yet." /> : s.doctors.slice(0, 6).map(({ p, total, done, next }) => (
               <div className="ad-doc" key={p._id}>
                 <Avatar style={{ background: '#0E7C86', flex: '0 0 auto' }}>{initials(p.user)}</Avatar>

@@ -1,4 +1,5 @@
 // navConfig.js - sidebar menu for each role. Keys are the URLs.
+// The admin has no separate Physicians item: physician accounts and their profiles are managed on Employees (filter Role = Physician).
 import {
   BellOutlined, CalendarOutlined, DashboardOutlined, InboxOutlined, MedicineBoxOutlined,
   ScheduleOutlined, SettingOutlined, TeamOutlined, UnorderedListOutlined, UserOutlined,
@@ -26,6 +27,6 @@ export const NAV = {
   patient: menu('/patient', [['dashboard', 'Dashboard'], ['book-appointment', 'Book Appointment'], ['appointments', 'My Appointments'], ['services', 'Services'], ['providers', 'Physicians'], ['notifications', 'Notifications'], ['profile', 'Profile'], ['settings', 'Settings']]),
   doctor: menu('/doctor', [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['schedule', 'Schedule'], ['patients', 'Patients'], ['notifications', 'Notifications'], ['profile', 'Profile']]),
   staff: menu('/staff', [['dashboard', 'Dashboard'], ['appointments', 'Appointments'], ['appointments/create', 'Create Appointment'], ['patients', 'Patients'], ['providers', 'Physicians'], ['schedules', 'Schedules'], ['notifications', 'Notifications'], ['profile', 'Profile']]),
-  admin: menu('/admin', [['dashboard', 'Dashboard'], ['employees', 'Employees'], ['patients', 'Patients'], ['providers', 'Physicians'], ['services', 'Services'], ['appointments', 'Appointments'], ['schedules', 'Schedules'], ['archive', 'Archive'], ['notifications', 'Notifications'], ['settings', 'Settings']]),
+  admin: menu('/admin', [['dashboard', 'Dashboard'], ['employees', 'Employees'], ['patients', 'Patients'], ['services', 'Services'], ['appointments', 'Appointments'], ['schedules', 'Schedules'], ['archive', 'Archive'], ['notifications', 'Notifications'], ['settings', 'Settings']]),
 };
 export const ROLE_LABEL = { patient: 'Patient', doctor: 'Physician', staff: 'Receptionist', admin: 'Administrator' };

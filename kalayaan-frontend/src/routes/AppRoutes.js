@@ -38,7 +38,6 @@ const DoctorProfilePage = lazy(() => import('../pages/doctor/DoctorProfilePage')
 const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'));
 const UsersPage = lazy(() => import('../pages/admin/UsersPage'));
 const UserDetailsPage = lazy(() => import('../pages/admin/UserDetailsPage'));
-const AdminProvidersPage = lazy(() => import('../pages/admin/AdminProvidersPage'));
 const AdminServicesPage = lazy(() => import('../pages/admin/AdminServicesPage'));
 const AdminSchedulesPage = lazy(() => import('../pages/admin/AdminSchedulesPage'));
 const ArchivePage = lazy(() => import('../pages/admin/ArchivePage'));
@@ -55,10 +54,11 @@ const BUILT = {
   'staff/appointments/create': <BookAppointmentPage staff />, 'staff/patients': <PatientsPage />, 'staff/schedules': <SchedulesPage />,
   'doctor/schedule': <SchedulePage />, 'doctor/patients': <PatientsPage variant="doctor" />, 'doctor/profile': <DoctorProfilePage />,
   'admin/dashboard': <AdminDashboardPage />, 'admin/employees': <UsersPage />, 'admin/employees/:id': <UserDetailsPage />, 'admin/patients': <PatientsPage variant="admin" />,
-  'admin/providers': <AdminProvidersPage />, 'admin/services': <AdminServicesPage />, 'admin/schedules': <AdminSchedulesPage />, 'admin/archive': <ArchivePage />, 'admin/settings': <SettingsPage />,
+  'admin/providers': <Navigate to="/admin/employees?role=doctor" replace />, 'admin/services': <AdminServicesPage />, 'admin/schedules': <AdminSchedulesPage />, 'admin/archive': <ArchivePage />, 'admin/settings': <SettingsPage />,
   'patient/services': <ServicesPage />, 'patient/providers': <ProvidersPage />, 'patient/providers/:id': <ProviderDetailsPage />, 'staff/providers': <ProvidersPage readOnly />,
 };
 const PUBLIC = Object.keys(BUILT).filter((k) => !k.includes('/') || k === 'providers/:id');
+// admin/providers is kept only as a redirect: the admin's Physicians page was merged into Employees, so an old link or bookmark still works.
 const ROLE_OF = { patient: 'patient', doctor: 'doctor', staff: 'receptionist', admin: 'admin' };
 const PORTAL = {
   patient: [['dashboard', 'Dashboard'], ['book-appointment', 'Book Appointment'], ['appointments', 'My Appointments'], ['appointments/:id', 'Appointment details'], ['services', 'Services'], ['providers', 'Physicians'], ['providers/:id', 'Physician details'], ['notifications', 'Notifications'], ['profile', 'Profile'], ['settings', 'Settings']],

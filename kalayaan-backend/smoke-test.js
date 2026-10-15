@@ -131,13 +131,11 @@ const PROFILE = (extra = {}) => ({ firstName: 'Smoke', lastName: 'Tester', sex: 
     check('doctor completes with a summary (recordedBy has a name)', r.s === 200 && r.d.appointment.status === 'Completed' && r.d.appointment.consultation.recordedBy.firstName, r.d);
     r = await call('PATCH', `/appointments/${w._id}/status`, { status: 'Cancelled', reason: 'Trying to undo it' }, joy.token); check('Completed cannot be cancelled', r.s === 409, r.d);
     r = await call('PATCH', `/appointments/${w._id}/archive`, { reason: 'Closed' }, joy.token); check('receptionist cannot archive (403)', r.s === 403, r.d);
-    r = await call('PATCH', `/appointments/${w._id}/archive`, { reason: 'Closed after smoke test' }, paolo.token); check('admin archives a finished appointment', r.s === 200 && r.d.appointment.isArchived, r.d);
-    r = await call('GET', `/appointments?patientId=${smoke.user._id}`, null, joy.token); check('archived appointment leaves the active list', !r.d.appointments.some((x) => x._id === w._id), r.d.appointments.length);
-    r = await call('GET', '/archive?type=appointment', null, paolo.token); check('and appears on the Archive page', r.d.rows.some((x) => x._id === w._id), r.d.counts);
-    r = await call('PATCH', `/appointments/${w._id}/restore`, {}, paolo.token); check('restore brings it back', r.s === 200 && !r.d.appointment.isArchived, r.d);
+    r = await call('PATCH', `/appointments/${w._id}/archive`, { reason: 'Closed after smoke test' }, paolo.token); check('admin cannot archive a finished appointment (403)', r.s === 403, r.d);
+    r = await call('GET', `/appointments?patientId=${smoke.user._id}`, null, joy.token); check('the finished appointment stays in the list', r.d.appointments.some((x) => x._id === w._id), r.d.appointments.length);
     r = await call('GET', `/appointments?patientId=${smoke.user._id}`, null, doc.token); check('doctor may filter by patient (own appointments only)', r.s === 200 && r.d.appointments.length >= 1 && r.d.appointments.every((x) => x.providerId === todayProv.p._id || (x.provider && x.provider._id === todayProv.p._id)), r.d.appointments && r.d.appointments.length);
   } else console.log('  skip  walk-in and consultation tests (no doctor works today)');
-  r = await call('PATCH', `/appointments/${apptA._id}/archive`, {}, paolo.token); check('an active appointment cannot be archived (409)', r.s === 409, r.d);
+  r = await call('PATCH', `/appointments/${apptA._id}/archive`, {}, paolo.token); check('an active appointment cannot be archived either (403)', r.s === 403, r.d);
 
   section('Reschedule');
   r = await call('POST', `/appointments/${apptA._id}/reschedule-request`, { date: A.date, startTime: A.s[1], reason: 'Work meeting' }, smoke.token); check('patient requests a reschedule; status stays Confirmed', r.s === 200 && r.d.appointment.status === 'Confirmed' && r.d.appointment.reschedulePending.startTime === A.s[1], r.d);
@@ -209,7 +207,7 @@ const PROFILE = (extra = {}) => ({ firstName: 'Smoke', lastName: 'Tester', sex: 
   await call('POST', '/services', { name: svcName, category: 'Diagnostic', durationMinutes: 30 }, paolo.token);
   r = await call('PATCH', `/services/${svc._id}/restore`, {}, paolo.token); check('restore is refused when an active service has the same name', r.s === 409 && r.d.code === 'NAME_TAKEN', r.d);
   r = await call('PATCH', `/services/${followUp._id}/archive`, {}, paolo.token); check('archiving a service with upcoming appointments is blocked', r.s === 409 && r.d.code === 'HAS_DEPENDENCIES', r.d);
-  r = await call('GET', '/archive', null, paolo.token); check('Archive page lists at least 6 rows of all four types', r.s === 200 && r.d.total >= 6 && ['user', 'provider', 'service', 'appointment'].every((t) => r.d.counts[t] >= 1), r.d.counts);
+  r = await call('GET', '/archive', null, paolo.token); check('Archive page lists at least 6 rows (employees, patients, physicians, services) and no appointments', r.s === 200 && r.d.total >= 6 && ['user', 'provider', 'service'].every((t) => r.d.counts[t] >= 1) && !r.d.counts.appointment, r.d.counts);
   r = await call('GET', '/archive', null, joy.token); check('receptionist cannot open the Archive (403)', r.s === 403, r.d);
 
   section('Notifications');

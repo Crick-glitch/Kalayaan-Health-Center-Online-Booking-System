@@ -14,7 +14,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
   await Promise.all(Object.values(M).map((m) => m.syncIndexes()));
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
-  // ---- 14 users: 12 loginable + 2 archived ----
+  // ---- 16 users: 12 loginable + 4 archived (patients and employees can be archived; appointments cannot) ----
   let n = 0;
   const PEOPLE = [ // [mobile, address, birth date, emergency contact, relationship, emergency mobile] in the same order as the users below
     ['09171230001', '12 Rizal Street, Barangay Kalayaan, Quezon City', '1982-06-21', 'Marites Cruz', 'Mother', '09189870001'],
@@ -31,13 +31,15 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     ['09171230012', '33 Narra Street, Barangay Kalayaan, Quezon City', '1991-07-30', 'Daniel Park', 'Husband', '09189870012'],
     ['09171230013', '14 Acacia Street, Barangay Kalayaan, Quezon City', '1988-09-09', 'Mila Lacson', 'Mother', '09189870013'],
     ['09171230014', '9 Mahogany Street, Barangay Kalayaan, Quezon City', '1952-12-02', 'Cecilia Ramos', 'Wife', '09189870014'],
+    ['09171230015', '48 Molave Street, Barangay Kalayaan, Quezon City', '1993-08-15', 'Rosa Castillo', 'Mother', '09189870015'],
+    ['09171230016', '21 Ipil Street, Barangay Kalayaan, Quezon City', '1987-04-26', 'Eduardo Navarro', 'Father', '09189870016'],
   ];
   const U = (firstName, lastName, email, role, x = {}) => {
     const [contactNumber, address, dateOfBirth, ecName, ecRel, ecNumber] = PEOPLE[n++];
     return { firstName, lastName, email, role, passwordHash, accountStatus: 'active', sex: 'Female', dateOfBirth, contactNumber, address,
       emergencyContact: { name: ecName, relationship: ecRel, contactNumber: ecNumber }, lastLoginAt: new Date(), ...x };
   };
-  const [admin, joy, raf, eS, mL, gT, rV, ana, ben, cora, dan, elp, jo, ramon] = await M.User.insertMany([
+  const [admin, joy, raf, eS, mL, gT, rV, ana, ben, cora, dan, elp, jo, ramon, noel, lea] = await M.User.insertMany([
     U('Paolo', 'Cruz', 'paolo@kalayaan.example', 'admin', { sex: 'Male' }),
     U('Joy', 'Mendoza', 'joy@kalayaan.example', 'receptionist'), U('Rafael', 'Bautista', 'rafael@kalayaan.example', 'receptionist', { sex: 'Male' }),
     U('Elena', 'Santos', 'elena@kalayaan.example', 'doctor'), U('Marco', 'Lim', 'marco@kalayaan.example', 'doctor', { sex: 'Male' }),
@@ -49,9 +51,11 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     U('Elena', 'Park', 'elena.park@email.com', 'patient'),
     U('Jo', 'Lacson', 'jo.lacson@email.com', 'patient', { ...AR('Moved to another city') }),
     U('Ramon', 'Ramos', 'ramon@kalayaan.example', 'doctor', { sex: 'Male', ...AR('Retired from practice') }),
+    U('Noel', 'Castillo', 'noel.castillo@email.com', 'patient', { sex: 'Male', ...AR('Account closed at the patient\'s request') }),
+    U('Lea', 'Navarro', 'lea@kalayaan.example', 'receptionist', { ...AR('Resigned from the health center') }),
   ]);
 
-  // ---- 9 active services + 1 archived ----
+  // ---- 9 active services + 2 archived ----
   const S = Object.fromEntries((await M.Service.insertMany([
     ['General Checkup', 'Consultation', 30, 'Routine consultation with a general practitioner.', 'Bring a valid ID.'],
     ['Dental Consultation', 'Consultation', 30, 'Check-up and advice for teeth and gums.', 'Bring earlier dental records, if any.'],
@@ -63,7 +67,8 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     ['Health Screening', 'Diagnostic', 45, 'Basic screening for overall health.', 'Fasting for 8 hours.'],
     ['Diagnostic Consultation', 'Diagnostic', 30, 'Consultation to assess symptoms.', 'List your symptoms before the visit.'],
   ].map(([name, category, durationMinutes, description, requirements]) => ({ name, category, durationMinutes, description, requirements }))
-    .concat([{ name: 'Legacy Screening Package', category: 'Diagnostic', durationMinutes: 45, description: 'Replaced by Health Screening.', requirements: 'None', ...AR('Replaced by Health Screening') }]))).map((s) => [s.name, s]));
+    .concat([{ name: 'Legacy Screening Package', category: 'Diagnostic', durationMinutes: 45, description: 'Replaced by Health Screening.', requirements: 'None', ...AR('Replaced by Health Screening') },
+      { name: 'Basic Wellness Package', category: 'Preventive', durationMinutes: 30, description: 'Basic wellness advice and measurements.', requirements: 'None', ...AR('No longer offered') }]))).map((s) => [s.name, s]));
 
   // ---- 4 active providers + 1 archived, each with a weekly schedule and one lunch break ----
   const OFFER = [['General Checkup', 'Follow-up Consultation', 'Vaccination', 'Preventive Care Check-up', 'Health Screening', 'Diagnostic Consultation'],
@@ -77,7 +82,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
   const T = [tpl([1, 2, 4, 5], '09:00', '17:00'), tpl([1, 2, 3, 4, 5, 6], '09:00', '16:00'), tpl([2, 3, 4, 5, 6], '08:00', '15:00'), tpl([1, 2, 3, 4], '10:00', '16:00')];
   await M.Schedule.insertMany(T.map((weeklyTemplate, i) => ({ providerId: P[i]._id, weeklyTemplate })));
 
-  // ---- 32 appointments, built so nobody is double-booked and everything fits working hours ----
+  // ---- 32 appointments, built so nobody is double-booked and everything fits working hours. None are archived: appointments cannot be archived in the app. ----
   const docs = [eS, mL, gT, rV], busy = {}; let ref = 0;
   const works = (pi, d) => baseSlots(T[pi], D(d), 15).length > 0;
   const back = (pi, d) => { while (!works(pi, d)) d = d.subtract(1, 'day'); return d; };
@@ -118,7 +123,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     const who = { Pending: pt, Confirmed: joy, 'Checked In': joy, 'In Consultation': docs[pi], Completed: docs[pi], Cancelled: x.by || pt, 'No Show': joy };
     const a = { referenceNo: `APT-${dayjs().year()}-${String(++ref).padStart(5, '0')}`, patientId: pt._id, providerId: P[pi]._id, serviceId: svc._id,
       date: D(date), startTime: t, endTime: hhmm(e), status, reason: WHYS[svcName][ref % 2], notes: '', isWalkIn: false, createdBy: pt._id,
-      statusHistory: flow[status].map((st) => ({ status: st, at: clamp(when[st]), by: who[st]._id, note: '' })), ...(x.arch || {}) };
+      statusHistory: flow[status].map((st) => ({ status: st, at: clamp(when[st]), by: who[st]._id, note: '' })) };
     if (status === 'Completed') a.consultation = { summary: SUMS[svcName][ref % 2], recordedBy: docs[pi]._id, recordedAt: clamp(when.Completed) };
     if (status === 'Cancelled') a.cancellation = { by: (x.by || pt)._id, reason: 'Schedule conflict', at: clamp(when.Cancelled) };
     if (x.resched) a.reschedulePending = x.resched(date, pi);
@@ -127,7 +132,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
   const pats = [ana, ben, cora, dan, elp], list = [];
   for (let i = 0; i < 22; i++) { // 22 Completed, spread over about 90 days, all 4 doctors
     const pi = i % 4, svc = OFFER[pi][Math.floor(i / 4) % OFFER[pi].length], pt = pi === 3 ? [ana, cora, elp][i % 3] : pats[i % 5];
-    list.push(appt(pi, back(pi, day(-(2 + i * 4))), svc, pt, 'Completed', { pick: i % 3, ...(i === 21 ? { arch: AR('Closed after 90 days') } : {}) })); // the oldest visit is archived, so the Archive page has 6 rows
+    list.push(appt(pi, back(pi, day(-(2 + i * 4))), svc, pt, 'Completed', { pick: i % 3 }));
   }
   const tp = [1, 0, 2, 3].find((pi) => works(pi, day(0))) ?? 1, td = works(tp, day(0)) ? day(0) : back(tp, day(0)); // today (or the last working day)
   list.push(appt(tp, td, 'Follow-up Consultation', cora, 'In Consultation', { pick: 0 }), appt(tp, td, 'Follow-up Consultation', ben, 'Checked In', { pick: 2 }));
@@ -135,8 +140,8 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
   list.push(appt(0, fwd(0, day(2)), 'General Checkup', ana, 'Confirmed', fut), appt(1, fwd(1, day(1)), 'Dental Consultation', ben, 'Confirmed', fut),
     appt(1, fwd(1, day(4)), 'Dental Consultation', ana, 'Pending', { ...fut, pick: 2 }), appt(2, fwd(2, day(3)), 'Pediatric Checkup', cora, 'Pending', fut),
     appt(0, fwd(0, day(6)), 'Follow-up Consultation', elp, 'Confirmed', { ...fut, pick: 3, resched: (d, pi) => ({ date: D(fwd(pi, d.add(3, 'day'))), startTime: baseSlots(T[pi], D(fwd(pi, d.add(3, 'day'))), 15)[2], reason: 'Work meeting conflict', requestedAt: new Date() }) }));
-  list.push(appt(1, back(1, day(-12)), 'Follow-up Consultation', dan, 'Cancelled', { arch: AR('Cancelled, record closed') }), appt(0, back(0, day(-20)), 'General Checkup', ben, 'Cancelled', { by: joy }),
-    appt(2, back(2, day(-8)), 'Pediatric Checkup', cora, 'No Show', { arch: AR('No show, record closed') }));
+  list.push(appt(1, back(1, day(-12)), 'Follow-up Consultation', dan, 'Cancelled'), appt(0, back(0, day(-20)), 'General Checkup', ben, 'Cancelled', { by: joy }),
+    appt(2, back(2, day(-8)), 'Pediatric Checkup', cora, 'No Show'));
   const A = await M.Appointment.insertMany(list);
 
   // ---- notifications (some unread) ----
@@ -151,9 +156,9 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
   const chk = A.find((a) => a.status === 'Checked In'); notes.push(N(docs[P.findIndex((p) => p._id.equals(chk.providerId))], 'checked_in', 'Patient arrived', `Reference ${chk.referenceNo}.`, chk));
   await M.Notification.insertMany(notes);
   await M.User.updateMany({ isArchived: true }, { archivedBy: admin._id });
-  await M.Appointment.updateMany({ isArchived: true }, { archivedBy: admin._id });
   await M.Provider.updateMany({ isArchived: true }, { archivedBy: admin._id });
   await M.Service.updateMany({ isArchived: true }, { archivedBy: admin._id });
+  // The Archive page starts with 6 rows: 2 patients, 2 employees (a receptionist and a physician with the profile), 2 services. No appointments.
 
   const c = (s) => A.filter((a) => a.status === s).length;
   console.log(`Seeded ${await M.User.countDocuments()} users, ${A.length} appointments (${c('Completed')} Completed), ${notes.length} notifications.`);
