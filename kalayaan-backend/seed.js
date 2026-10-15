@@ -39,7 +39,7 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
     return { firstName, lastName, email, role, passwordHash, accountStatus: 'active', sex: 'Female', dateOfBirth, contactNumber, address,
       emergencyContact: { name: ecName, relationship: ecRel, contactNumber: ecNumber }, lastLoginAt: new Date(), ...x };
   };
-  const [admin, joy, raf, eS, mL, gT, rV, ana, ben, cora, dan, elp, jo, ramon, noel, lea] = await M.User.insertMany([
+  const [admin, joy, raf, eS, mL, gT, rV, ana, ben, cora, dan, elp, , ramon] = await M.User.insertMany([ // the last archived users (Jo, Noel, Lea) are only inserted, so they get no variable
     U('Paolo', 'Cruz', 'paolo@kalayaan.example', 'admin', { sex: 'Male' }),
     U('Joy', 'Mendoza', 'joy@kalayaan.example', 'receptionist'), U('Rafael', 'Bautista', 'rafael@kalayaan.example', 'receptionist', { sex: 'Male' }),
     U('Elena', 'Santos', 'elena@kalayaan.example', 'doctor'), U('Marco', 'Lim', 'marco@kalayaan.example', 'doctor', { sex: 'Male' }),
@@ -146,7 +146,6 @@ const AR = (reason) => ({ isArchived: true, archivedAt: new Date(), archiveReaso
 
   // ---- notifications (some unread) ----
   const N = (u, type, title, message, a, isRead = false) => ({ userId: u._id, type, title, message, relatedAppointmentId: a._id, isRead });
-  const byRef = (r) => A.find((a) => a.status === r.status && a.patientId.equals(r.p._id));
   const notes = [];
   A.filter((a) => a.status === 'Completed').slice(-6).forEach((a) => notes.push({ ...N({ _id: a.patientId }, 'status_completed', 'Your visit has been completed.', `Reference ${a.referenceNo}.`, a, true) }));
   A.filter((a) => ['Confirmed', 'Pending'].includes(a.status) && a.date > D(day(0))).forEach((a) => {

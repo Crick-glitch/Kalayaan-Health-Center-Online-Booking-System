@@ -15,6 +15,4 @@ export const formatDateTime = (iso) => (iso ? `${dayjs(iso).format('MMMM D, YYYY
 export const ageOf = (dob) => (dob ? dayjs().diff(parseDate(dob), 'year') : null); // whole years
 export const isToday = (str) => parseDate(str).isSame(dayjs(), 'day');
 export const isTomorrow = (str) => parseDate(str).isSame(dayjs().add(1, 'day'), 'day');
-export const daysFromNow = (str) => parseDate(str).startOf('day').diff(dayjs().startOf('day'), 'day');
 export const startOf = (date, time) => dayjs(`${date} ${time}`, 'YYYY-MM-DD HH:mm'); // an appointment's start moment
-export const isPast = (date, time = '23:59') => startOf(date, time).isBefore(dayjs());

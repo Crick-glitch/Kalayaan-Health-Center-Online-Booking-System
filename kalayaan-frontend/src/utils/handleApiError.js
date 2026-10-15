@@ -1,7 +1,6 @@
-// handleApiError.js - one error shape for mock and Axios: { status, code, message, fieldErrors? }
+// handleApiError.js - shows an API error: a toast, or messages beside the form inputs. The error shape is { status, code, message, fieldErrors? }.
 import { message } from 'antd';
 
-export const apiError = (status, code, msg, fieldErrors) => Object.assign(new Error(msg), { status, code, fieldErrors });
 // Shows a toast, or puts field errors beside the form inputs when a form is given.
 export default function handleApiError(err, form) {
   if (form && err.fieldErrors) {

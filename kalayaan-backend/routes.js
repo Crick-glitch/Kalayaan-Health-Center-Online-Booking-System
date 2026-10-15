@@ -8,7 +8,7 @@ const NAME = /^[A-Za-z\u00C0-\u00FF' -]{2,50}$/, PH = /^(09\d{9}|\+639\d{9})$/;
 const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 module.exports = (app, H) => {
-  const { E, wrap, auth, role, notify, FORBIDDEN, slotsFor, populate, staffIds, PW, profileErrors, fail, checkWhen, patientOverlap, checkRegister, sign } = H;
+  const { E, wrap, auth, role, notify, FORBIDDEN, slotsFor, populate, staffIds, PW, profileErrors, fail, checkWhen, patientOverlap, checkRegister } = H;
   const admin = [auth, role('admin')], today = () => dayjs().format('YYYY-MM-DD');
   const GONE = () => new E(409, 'SLOT_UNAVAILABLE', 'This appointment slot is no longer available. Please select another time.');
   const find = async (Model, id, extra = {}) => { const d = await Model.findOne({ _id: id, ...extra }); if (!d) throw new E(404, 'NOT_FOUND', 'Record not found.'); return d; };

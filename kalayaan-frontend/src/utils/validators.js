@@ -1,9 +1,9 @@
 // validators.js - shared Ant Design Form rules. Field errors appear beside the inputs.
 import dayjs from 'dayjs';
 
-export const NAME_RE = /^[A-Za-z\u00C0-\u00FF' -]{2,50}$/;
-export const PHONE_RE = /^(09\d{9}|\+639\d{9})$/; // Philippine mobile
-export const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const NAME_RE = /^[A-Za-z\u00C0-\u00FF' -]{2,50}$/;
+const PHONE_RE = /^(09\d{9}|\+639\d{9})$/; // Philippine mobile
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 const NAME_MSG = 'Use 2 to 50 letters, spaces, hyphens or apostrophes.';
 const PASSWORD_MSG = 'At least 8 characters with upper and lower case letters and a number.';
 

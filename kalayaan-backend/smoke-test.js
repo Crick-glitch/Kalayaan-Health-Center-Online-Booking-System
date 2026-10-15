@@ -90,7 +90,7 @@ const PROFILE = (extra = {}) => ({ firstName: 'Smoke', lastName: 'Tester', sex: 
   r = await call('PATCH', `/appointments/${apptA._id}/status`, { status: 'Confirmed' }, joy.token); check('receptionist confirms', r.s === 200 && r.d.appointment.status === 'Confirmed', r.d);
   r = await call('PATCH', `/appointments/${apptA._id}/status`, { status: 'Checked In' }, joy.token); check('check-in before the appointment date gives 409', r.s === 409, r.d);
   r = await call('PATCH', `/appointments/${apptA._id}/status`, { status: 'No Show' }, joy.token); check('No Show before 15 minutes after start gives 409', r.s === 409, r.d);
-  r = await call('GET', '/notifications', null, smoke.token); const msgs = r.d.notifications.map((n) => n.message + ' ' + n.title).join(' ');
+  r = await call('GET', '/notifications', null, smoke.token);
   check('patient was notified of the confirmation; unread count works', r.s === 200 && r.d.unread >= 1 && r.d.notifications.some((n) => n.title === 'Your appointment has been confirmed.'), r.d);
   const soon = await (async () => { for (let i = 0; i < 2; i++) for (const p of providers) { const s = (await slots(p, day(i), joy.token)).filter((t) => { const h = dayjs(`${day(i)} ${t}`).diff(dayjs(), 'hour', true); return h > 1.1 && h < 23.5; }); if (s.length) return { p, date: day(i), t: s[0] }; } })();
   const s2Registration = await call('POST', '/auth/register', { ...PROFILE({ firstName: 'Inside' }), email: `smoke3.${tag}@email.com`, password: 'Smoke#1234', agreement: true });
@@ -189,16 +189,12 @@ const PROFILE = (extra = {}) => ({ firstName: 'Smoke', lastName: 'Tester', sex: 
   const newUser = { ...PROFILE({ firstName: 'Archive', lastName: 'Candidate' }), email: `candidate.${tag}@kalayaan.example`, role: 'patient', password: 'Candidate#2026' };
   r = await call('POST', '/users', { ...newUser, firstName: '' }, paolo.token); check('admin add-user validates', r.s === 400 && r.d.fieldErrors.firstName, r.d);
   r = await call('POST', '/users', newUser, paolo.token); check('admin adds a user without leaking the password hash', r.s === 201 && !JSON.stringify(r.d).includes('passwordHash'), r.d);
-  const cand = r.d.user, before = (await call('GET', '/providers')).d.providers.length;
-  r = await call('PATCH', `/users/${cand._id}/role`, { role: 'doctor' }, paolo.token); check('role change to doctor works', r.s === 200 && r.d.user.role === 'doctor', r.d);
-  check('...and creates an empty provider profile', (await call('GET', '/providers')).d.providers.length === before + 1);
-  r = await call('PATCH', `/users/${cand._id}/role`, { role: 'receptionist' }, paolo.token); check('role change away from doctor works', r.s === 200, r.d);
-  check('...and archives the provider profile', (await call('GET', '/providers')).d.providers.length === before);
+  const cand = r.d.user;
+  r = await call('PATCH', `/users/${cand._id}/role`, { role: 'doctor' }, paolo.token); check('a role cannot be changed after the account is created (403)', r.s === 403 && r.d.code === 'ROLE_LOCKED', r.d);
   r = await call('PATCH', `/users/${cand._id}/archive`, { reason: 'Left the clinic' }, paolo.token); check('a user with no upcoming appointments can be archived', r.s === 200 && r.d.user.isArchived && r.d.user.accountStatus === 'active', r.d);
   r = await call('POST', '/auth/login', { email: newUser.email, password: newUser.password }); check('an archived account cannot log in', r.s === 403, r.d);
   r = await call('PATCH', `/users/${cand._id}/restore`, {}, paolo.token); check('restore works', r.s === 200 && !r.d.user.isArchived, r.d);
   r = await call('PATCH', `/users/${smoke.user._id}/archive`, {}, paolo.token); check('archiving a patient with upcoming appointments is blocked with a count', r.s === 409 && r.d.code === 'HAS_DEPENDENCIES' && r.d.count >= 1, r.d);
-  r = await call('PATCH', `/users/${smoke.user._id}/role`, { role: 'doctor' }, paolo.token); check('role change is blocked while upcoming appointments exist', r.s === 409 && r.d.code === 'HAS_DEPENDENCIES', r.d);
   r = await call('PATCH', `/providers/${santos._id}/archive`, {}, paolo.token); check('archiving a provider with upcoming appointments is blocked', r.s === 409 && r.d.code === 'HAS_DEPENDENCIES' && r.d.count >= 1, r.d);
   const svcName = `Smoke Screening ${tag}`;
   r = await call('POST', '/services', { name: svcName, category: 'Diagnostic', durationMinutes: 30, description: 'Temporary', requirements: 'None' }, paolo.token); check('admin adds a service', r.s === 201, r.d);

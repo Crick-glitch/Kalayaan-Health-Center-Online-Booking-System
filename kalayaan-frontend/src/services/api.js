@@ -1,4 +1,4 @@
-// api.js - the Axios instance for the real backend. Used only when REACT_APP_USE_MOCK=false.
+// api.js - the Axios instance for the backend API.
 import axios from 'axios';
 import { API_URL } from '../config/constants';
 
