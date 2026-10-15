@@ -96,3 +96,102 @@ body { margin: 0; }
 .sched-slot.is-now { box-shadow: 0 0 0 2px #0E7C86; }
 .sched-main { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 @media (max-width: 575px) { .sched-row { flex-direction: column; gap: 4px; } .sched-time { flex: none; padding-top: 0; text-align: left; } }
+
+/* adminDashboard.css - styles for the admin dashboard only (classes start with "ad-").
+   Colors reuse the same tokens as config/theme.js and StatusBadge.js, so the page matches the rest of the app. */
+
+/* ---------- Welcome strip ---------- */
+.ad-hero { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px;
+  margin-bottom: 16px; padding: 24px 28px; border-radius: 12px; color: #fff; background: linear-gradient(120deg, #0B2545 0%, #0B5F68 58%, #0E7C86 100%); }
+.ad-hero::before, .ad-hero::after { content: ''; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.07); pointer-events: none; }
+.ad-hero::before { top: -90px; right: -50px; width: 280px; height: 280px; }
+.ad-hero::after { right: 120px; bottom: -110px; width: 200px; height: 200px; }
+.ad-hero-text { position: relative; z-index: 1; min-width: 0; }
+.ad-hero-title { margin: 0; color: #fff; font-size: 22px; font-weight: 700; line-height: 1.3; }
+.ad-hero-sub { margin: 6px 0 0; color: rgba(255, 255, 255, 0.86); font-size: 15px; }
+.ad-hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-hero .ant-btn-default { border-color: transparent; background: #fff; color: #0B5F68; font-weight: 600; }
+.ad-hero .ant-btn-default:hover { background: #E8F3FA !important; color: #0B5F68 !important; border-color: transparent !important; }
+.ad-hero .ant-btn-text { color: #fff; }
+.ad-hero .ant-btn-text:hover { background: rgba(255, 255, 255, 0.14) !important; color: #fff !important; }
+
+/* ---------- KPI cards ---------- */
+.ad-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; } /* 5 across on wide screens, 3 on tablets, 2 on phones */
+.ad-kpi { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; border: 1px solid #E3EAF0; border-radius: 12px; background: #fff; color: #0B2545;
+  box-shadow: 0 1px 2px rgba(11, 37, 69, 0.04); transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+.ad-kpi:hover { transform: translateY(-2px); border-color: var(--tone); box-shadow: 0 8px 20px rgba(11, 37, 69, 0.1); color: #0B2545; }
+.ad-kpi:focus-visible { outline: 2px solid var(--tone); outline-offset: 2px; }
+.ad-kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ad-kpi-label { color: #5B6B7B; font-size: 13px; font-weight: 600; }
+.ad-kpi-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: 10px; background: var(--tone-bg); color: var(--tone); font-size: 20px; }
+.ad-kpi-value { font-size: 32px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.ad-kpi-sub { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #5B6B7B; font-size: 13px; }
+.ad-kpi-go { color: #9AA9B8; transition: transform 0.2s ease, color 0.2s ease; }
+.ad-kpi:hover .ad-kpi-go { transform: translateX(3px); color: var(--tone); }
+
+/* ---------- Panels ---------- */
+.ad-card.ant-card { height: 100%; border-color: #E3EAF0; border-radius: 12px; box-shadow: 0 1px 2px rgba(11, 37, 69, 0.04); }
+.ad-card .ant-card-head { min-height: 52px; border-bottom: 1px solid #EEF2F6; }
+.ad-card .ant-card-head-title { font-size: 15px; font-weight: 650; }
+.ad-card .ant-card-extra a { font-size: 13px; }
+.ad-muted { color: #5B6B7B; }
+
+/* ---------- Donut chart ---------- */
+.ad-donut { position: relative; height: 190px; }
+.ad-donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.ad-donut-total { font-size: 28px; font-weight: 700; line-height: 1.1; }
+.ad-donut-caption { color: #5B6B7B; font-size: 12px; }
+.ad-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.ad-legend li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ad-legend-dot { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; }
+.ad-legend-name { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
+.ad-legend-count { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------- Needs attention ---------- */
+.ad-attn { display: flex; align-items: center; gap: 12px; margin: 0 -8px; padding: 10px 8px; border-radius: 8px; color: #0B2545; transition: background 0.15s ease; }
+.ad-attn + .ad-attn { margin-top: 2px; }
+.ad-attn:hover { background: #F5F7FA; color: #0B2545; }
+.ad-attn-icon { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: 10px; background: var(--tone-bg); color: var(--tone); font-size: 17px; }
+.ad-attn-text { min-width: 0; flex: 1; line-height: 1.4; }
+.ad-attn-text strong { display: block; font-size: 14px; }
+.ad-attn-text span { color: #5B6B7B; font-size: 13px; }
+.ad-attn-go { color: #9AA9B8; }
+.ad-clear { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 24px 8px; text-align: center; color: #5B6B7B; }
+.ad-clear .anticon { color: #2E9E6B; font-size: 34px; }
+
+/* ---------- Physicians today / popular services ---------- */
+.ad-doc { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.ad-doc + .ad-doc { border-top: 1px solid #EEF2F6; }
+.ad-doc-body { min-width: 0; flex: 1; }
+.ad-doc-name { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.ad-doc-meta { display: flex; justify-content: space-between; gap: 8px; color: #5B6B7B; font-size: 12px; }
+.ad-doc .ant-progress { margin: 2px 0 0; line-height: 1; }
+.ad-bar-row + .ad-bar-row { margin-top: 14px; }
+.ad-bar-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 2px; font-size: 13px; }
+.ad-bar-head span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-bar-head span:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------- Accounts ---------- */
+.ad-person { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.ad-person + .ad-person { border-top: 1px solid #EEF2F6; }
+.ad-person-body { min-width: 0; flex: 1; }
+.ad-person-name { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.ad-person-meta { color: #5B6B7B; font-size: 12px; }
+
+/* ---------- Activity feed ---------- */
+.ad-feed .ant-timeline-item { padding-bottom: 14px; }
+.ad-feed .ant-timeline-item:last-child { padding-bottom: 0; }
+.ad-feed-line { line-height: 1.45; }
+.ad-feed-time { color: #5B6B7B; font-size: 12px; }
+
+/* ---------- Entrance animation (skipped when the person prefers reduced motion) ---------- */
+@keyframes ad-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.ad-rise { animation: ad-rise 0.5s ease both; animation-delay: calc(var(--i, 0) * 70ms); }
+@media (prefers-reduced-motion: reduce) {
+  .ad-rise { animation: none; }
+  .ad-kpi, .ad-kpi-go, .ad-attn { transition: none; }
+  .ad-kpi:hover { transform: none; }
+}
+@media (max-width: 1279px) { .ad-kpis { grid-template-columns: repeat(6, 1fr); } .ad-kpi { grid-column: span 2; } .ad-kpi:nth-child(n + 4) { grid-column: span 3; } } /* 3 + 2 cards, both rows full */
+@media (max-width: 767px) { .ad-kpis { grid-template-columns: repeat(2, 1fr); gap: 12px; } .ad-kpi, .ad-kpi:nth-child(n + 4) { grid-column: auto; } .ad-kpi:last-child { grid-column: 1 / -1; } .ad-kpi { padding: 14px; } .ad-kpi-value { font-size: 28px; } .ad-kpi-icon { width: 34px; height: 34px; flex-basis: 34px; font-size: 17px; } }
+@media (max-width: 575px) { .ad-hero { padding: 20px 18px; } .ad-hero-actions, .ad-hero-actions .ant-btn { width: 100%; } .ad-legend { grid-template-columns: 1fr; } }
